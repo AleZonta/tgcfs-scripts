@@ -124,7 +124,7 @@ def single_elaboration(total, max):
     return scaled_version, total_list_generation[0]
 
 
-def analise_both(path, max_agent, max_classifier,time_agent_more_classifier):
+def analise_both(path, max_agent, max_classifier):
     directories = os.listdir(path)
     if ".DS_Store" in directories:
         directories.remove(".DS_Store")
@@ -171,17 +171,70 @@ def analise_both(path, max_agent, max_classifier,time_agent_more_classifier):
     plt.show()
 
 
+def how_many_folder(path):
+    directories = os.listdir(path)
+    if ".DS_Store" in directories:
+        directories.remove(".DS_Store")
+
+    list = []
+    for el in directories:
+        try:
+            v = int(el)
+            list.append(v)
+        except:
+            pass
+    list.sort()
+
+    return list
+
+
+def analise_both_single_folder(path, number, max_agent, max_classifier):
+    total_agent = []
+    name = path + "/" + str(number) + "/tgcfs.EA.Agents-fitness.csv"
+    try:
+        with open(name) as f:
+            lis = [line.split() for line in f]
+            lis = lis[1:]
+            total_agent.append((number, lis))
+    except Exception:
+        pass
+
+    total_classifier = []
+    name = path + "/" + str(number) + "/tgcfs.EA.Classifiers-fitness.csv"
+    try:
+        with open(name) as f:
+            lis = [line.split() for line in f]
+            lis = lis[1:]
+            total_classifier.append((number, lis))
+    except Exception:
+        pass
+
+    scaled_version_agent, gen_agent = single_elaboration(total_agent, max_agent)
+    scaled_version_classifier, gen_classifier = single_elaboration(total_classifier, max_classifier)
+
+    plt.figure()
+    plt.errorbar(gen_agent, scaled_version_agent)
+    plt.errorbar(gen_classifier, scaled_version_classifier)
+    plt.ylim(0, 1)
+    plt.xlabel("Generation")
+    plt.ylabel("Fitness (0->1)")
+    plt.legend(("Agents", "Classifier"))
+    plt.show()
+
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    max_agent = 800
+    max_agent = 8000
     max_classifier = 16000
-    time_agent_more_classifier = 5
+    time_agent_more_classifier = 0
     # one = True  # agent
     # # one = False  # classifier
     # analise("/Users/alessandrozonta/Desktop/res", one, max_agent, max_classifier)
-    analise_both("/Users/alessandrozonta/Desktop/res2", max_agent, max_classifier,time_agent_more_classifier)
+    # analise_both("/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance", max_agent, max_classifier, time_agent_more_classifier)
 
+    path = "/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance"
+    res = how_many_folder(path)
 
+    analise_both_single_folder(path, res[0], max_agent, max_classifier)
 
     logging.debug("End Program")

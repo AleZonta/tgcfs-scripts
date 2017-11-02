@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pandas import DataFrame
 
-
+# reading the file with the fitness for the agent and the classifiers given by input
+# read only one file per time, no more experiment for the same setting
 def analise(path):
     directories = os.listdir(path)
     if ".DS_Store" in directories:
@@ -26,6 +27,7 @@ def analise(path):
         try:
             with open(name) as f:
                 lis = [line.split() for line in f]
+                lis = lis[1:]
                 total_agent.append((el, lis))
         except Exception:
             pass
@@ -36,6 +38,7 @@ def analise(path):
         try:
             with open(name) as f:
                 lis = [line.split() for line in f]
+                lis = lis[1:]
                 total_classifier.append((el, lis))
         except Exception:
             pass
@@ -43,9 +46,9 @@ def analise(path):
     return total_agent, total_classifier
 
 
-def printGraph(total):
+def printGraph(total, number):
     real_total_list = []
-    for el in total[0][1]:
+    for el in total[number][1]:
         sub_total = []
         for subel in el:
             sub_total.append(float(subel.replace(",", "")))
@@ -60,8 +63,11 @@ def printGraph(total):
     # el is a row
     for el in real_total_list:
         # all the element in the row are different columns
-        for i in range(0, len(el)):
-            columns[i].append(el[i])
+        try:
+            for i in range(0, len(el)):
+                columns[i].append(el[i])
+        except Exception:
+            pass
 
     x = {}
     for i in range(0, len(columns)):
@@ -72,7 +78,7 @@ def printGraph(total):
     sns.set()
 
     f, ax = plt.subplots(figsize=(9, 6))
-    sns.heatmap(dfs, vmin=0, xticklabels=5, yticklabels=10)
+    sns.heatmap(dfs, vmin=0, xticklabels=5, yticklabels=30, cmap="RdBu_r")
     ax.set_xlabel('population')
     ax.set_ylabel('generation')
 
@@ -82,8 +88,13 @@ def printGraph(total):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    total_agent, total_classifier = analise("/Users/alessandrozonta/Desktop/ex/v24")
-    printGraph(total_agent)
-    printGraph(total_classifier)
+    total_agent, total_classifier = analise("/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance")
+
+    logging.debug("there are " + str(len(total_agent)) + " different results in this folder")
+
+    for i in range(len(total_agent)):
+        logging.debug("showing " + str(i))
+        printGraph(total_agent, i)
+        printGraph(total_classifier, i)
 
     logging.debug("End Program")

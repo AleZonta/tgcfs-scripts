@@ -4,11 +4,13 @@ import gmplot
 import json
 
 
-def reanInfo():
+def reanInfo(path):
     logging.debug("reading JSON file")
-    with open("/Users/alessandrozonta/Desktop/Experiment-Test/1/trajectory-generatedPoints.json") as f:
+    with open(path) as f:
         content = f.readlines()
         content = content[0].replace("(", "[").replace(")", "]")
+        pos = content.find("{")
+        content = content[pos:]
         json_file = json.loads(content)
 
         trajectories_label = []
@@ -57,7 +59,6 @@ def printTrajectory(gmap, real, generated, trajectory):
 
     logging.debug("plotting points")
 
-
     # print trajectory
     gmap.scatter(lat, lng, '#2b1aad', size=5, marker=False)
 
@@ -81,8 +82,9 @@ def printTrajectory(gmap, real, generated, trajectory):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    trajectories_label, json_file = reanInfo()
-
+    name = "trajectory-generatedPoints-200-200.json"
+    path = "/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance/1/"
+    trajectories_label, json_file = reanInfo(path + name)
 
     # # lets try the first one
     # print json_file[trajectories_label[0]]["real"]
@@ -106,11 +108,11 @@ if __name__ == "__main__":
     gmap = gmplot.GoogleMapPlotter(lat_real[0], lng_real[0], 16)
 
     for el in trajectories_label:
-        printTrajectory(gmap, json_file[el]["real"], json_file[el]["generated"],  json_file[el]["trajectory"])
-
+        printTrajectory(gmap, json_file[el]["real"], json_file[el]["generated"], json_file[el]["trajectory"])
 
     logging.debug("generating map")
-    gmap.draw("/Users/alessandrozonta/Desktop/Experiment-Test/test.html")
-
+    name = name[:-4]
+    name += "html"
+    gmap.draw(path + name)
 
     logging.debug("End Program")
