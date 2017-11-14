@@ -56,7 +56,7 @@ def printGraph(total, number):
         real_total_list.append(sub_total)
 
     columns = []
-    for i in range(0, 100):
+    for i in range(0, 10):
         test = []
         columns.append(test)
 
@@ -77,18 +77,19 @@ def printGraph(total, number):
 
     sns.set()
 
+    plt.figure(number)
     f, ax = plt.subplots(figsize=(9, 6))
     sns.heatmap(dfs, vmin=0, xticklabels=5, yticklabels=30, cmap="RdBu_r")
     ax.set_xlabel('population')
     ax.set_ylabel('generation')
 
-    plt.show()
+
 
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    total_agent, total_classifier = analise("/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance")
+    total_agent, total_classifier = analise("/Users/alessandrozonta/Desktop/Experiment-Test")
 
     logging.debug("there are " + str(len(total_agent)) + " different results in this folder")
 
@@ -97,4 +98,5 @@ if __name__ == "__main__":
         printGraph(total_agent, i)
         printGraph(total_classifier, i)
 
+    plt.show()
     logging.debug("End Program")

@@ -3,4 +3,3 @@ with open("/Users/alessandrozonta/PycharmProjects/roadNetwork/data/Rijswijk5.gra
     for line in fileobject:
         count += 1
         print count
-        

@@ -66,7 +66,7 @@ def printTrajectory(gmap, real, generated, trajectory):
     gmap.scatter(lat_real, lng_real, '#1ccc42', size=5, marker=False)
 
     # print generated point
-    gmap.scatter(lat_generated, lng_generated, '#cc1b1b', size=5, marker=False)
+    gmap.scatter(lat_generated, lng_generated, '#cc1b1b', size=1, marker=False)
 
     # connect real point with generated
     lat_connection = []
@@ -82,14 +82,25 @@ def printTrajectory(gmap, real, generated, trajectory):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    name = "trajectory-generatedPoints-200-200.json"
-    path = "/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance/1/"
+    name = "trajectory-generatedPoints-4-4.json"
+    path = "/Users/alessandrozonta/Desktop/Experiment-Test/2/"
     trajectories_label, json_file = reanInfo(path + name)
 
-    # # lets try the first one
-    # print json_file[trajectories_label[0]]["real"]
-    # print json_file[trajectories_label[0]]["generated"]
-    # print json_file[trajectories_label[0]]["trajectory"]
+    # lets try the first one
+    print "----------------- first one -----------------"
+    print json_file[trajectories_label[0]]["real"]
+    print json_file[trajectories_label[0]]["generated"]
+    print json_file[trajectories_label[0]]["trajectory"]
+    # lets try the second one
+    print "----------------- second one -----------------"
+    print json_file[trajectories_label[1]]["real"]
+    print json_file[trajectories_label[1]]["generated"]
+    print json_file[trajectories_label[1]]["trajectory"]
+    # lets try the third one
+    print "----------------- third one -----------------"
+    print json_file[trajectories_label[2]]["real"]
+    print json_file[trajectories_label[2]]["generated"]
+    print json_file[trajectories_label[2]]["trajectory"]
     #
     # # transform trajectory in lat and lng
     # lat = []
