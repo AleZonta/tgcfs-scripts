@@ -3,6 +3,7 @@ import logging
 import matplotlib.pyplot as plt
 import seaborn as sns
 import zipfile
+import os
 
 
 from pandas import DataFrame, np
@@ -15,12 +16,12 @@ def transform(value, max_old, min_old, max_new, min_new):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    max = 4
+    max = 501
     vect = np.arange(1, max + 1)
-    print vect
+    # print vect
     for numb in vect:
 
-        path = "/Users/alessandrozonta/Desktop/Experiment-Test/2/scores-" + str(numb) + "-" + str(numb) + ".zip"
+        path = "/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-NoGraph/3/scores-" + str(numb) + "-" + str(numb) + ".zip"
 
         with zipfile.ZipFile(path) as z:
             with z.open(z.namelist()[0]) as f:
@@ -29,8 +30,8 @@ if __name__ == "__main__":
                 content = content[0][pos:]
                 json_file = json.loads(content)
 
-                for el in json_file["scores"]:
-                    print el
+                # for el in json_file["scores"]:
+                #     print el
 
                 v = []
 
@@ -58,9 +59,9 @@ if __name__ == "__main__":
                 min_cla = np.amin(classifier_array)
                 max_cla = np.amax(classifier_array)
                 unique_element_classifier = np.unique(classifier_array)
-                print unique_element_classifier
+                # print unique_element_classifier
                 unique_element_agent = np.unique(agent_array)
-                print unique_element_agent
+                # print unique_element_agent
                 dif_cla = max_cla - min_cla
 
                 real_classifier = np.zeros(len(unique_element_classifier))
@@ -108,4 +109,13 @@ if __name__ == "__main__":
                 plt.xlabel("Classifiers")
                 plt.ylabel("Agents")
 
-    plt.show()
+                logging.debug("Generating frame " + str(numb))
+                fname = '_tmp%05d.png' % numb
+                plt.savefig(fname)
+                plt.clf()
+
+
+    os.system("rm movie.mp4")
+    os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4")
+    os.system("rm _tmp*.png")
+    # plt.show()

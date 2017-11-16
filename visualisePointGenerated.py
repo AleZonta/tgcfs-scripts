@@ -4,11 +4,16 @@ import gmplot
 import json
 import zipfile
 from pandas import np
+import imgkit
+from selenium import webdriver
+import time
+import os
+
 
 
 
 def reanInfo(path):
-    logging.debug("reading ZIP file")
+    # logging.debug("reading ZIP file")
     with zipfile.ZipFile(path) as z:
         with z.open(z.namelist()[0]) as f:
             content = f.readlines()
@@ -39,7 +44,7 @@ def printMap():
 
 
 def printTrajectory(gmap, real, generated, trajectory):
-    logging.debug("converting JSON list to list for the library")
+    # logging.debug("converting JSON list to list for the library")
     # transform trajectory in lat and lng
     lat = []
     lng = []
@@ -61,7 +66,7 @@ def printTrajectory(gmap, real, generated, trajectory):
         lat_generated.append(el[0])
         lng_generated.append(el[1])
 
-    logging.debug("plotting points")
+    # logging.debug("plotting points")
 
     # print trajectory
     gmap.scatter(lat, lng, '#2b1aad', size=5, marker=False)
@@ -86,28 +91,28 @@ def printTrajectory(gmap, real, generated, trajectory):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    max = 4
+    max = 501
     vect = np.arange(1, max +1)
     for numb in vect:
         name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
-        path = "/Users/alessandrozonta/Desktop/Experiment-Test/2/"
+        path = "/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-NoGraph/3/"
         trajectories_label, json_file = reanInfo(path + name)
 
         # lets try the first one
-        print "----------------- first one -----------------"
-        print json_file[trajectories_label[0]]["real"]
-        print json_file[trajectories_label[0]]["generated"]
-        print json_file[trajectories_label[0]]["trajectory"]
-        # lets try the second one
-        print "----------------- second one -----------------"
-        print json_file[trajectories_label[1]]["real"]
-        print json_file[trajectories_label[1]]["generated"]
-        print json_file[trajectories_label[1]]["trajectory"]
-        # lets try the third one
-        print "----------------- third one -----------------"
-        print json_file[trajectories_label[2]]["real"]
-        print json_file[trajectories_label[2]]["generated"]
-        print json_file[trajectories_label[2]]["trajectory"]
+        # print "----------------- first one -----------------"
+        # print json_file[trajectories_label[0]]["real"]
+        # print json_file[trajectories_label[0]]["generated"]
+        # print json_file[trajectories_label[0]]["trajectory"]
+        # # lets try the second one
+        # print "----------------- second one -----------------"
+        # print json_file[trajectories_label[1]]["real"]
+        # print json_file[trajectories_label[1]]["generated"]
+        # print json_file[trajectories_label[1]]["trajectory"]
+        # # lets try the third one
+        # print "----------------- third one -----------------"
+        # print json_file[trajectories_label[2]]["real"]
+        # print json_file[trajectories_label[2]]["generated"]
+        # print json_file[trajectories_label[2]]["trajectory"]
         #
         # # transform trajectory in lat and lng
         # lat = []
@@ -123,14 +128,36 @@ if __name__ == "__main__":
             lat_real.append(el[0])
             lng_real.append(el[1])
 
-        gmap = gmplot.GoogleMapPlotter(lat_real[0], lng_real[0], 16)
+        gmap = gmplot.GoogleMapPlotter(lat_real[0], lng_real[0], 19)
 
         for el in trajectories_label:
             printTrajectory(gmap, json_file[el]["real"], json_file[el]["generated"], json_file[el]["trajectory"])
 
-        logging.debug("generating map")
+        logging.debug("generating map " + str(numb))
         name = name[:-4]
-        name += "html"
+        name += ".html"
         gmap.draw(path + name)
 
+        # --------------------------------------------------------------
+        # --------------------------------------------------------------
+        # it requires this command to work
+        # selenium-server -port 4444
+        # on console of course
+        # --------------------------------------------------------------
+        # --------------------------------------------------------------
+
+        driver = webdriver.Chrome()
+        driver.get("file://" + path + name)
+        save_name = '_tmp%05d.png' % numb
+
+        time.sleep(5)
+
+        time.sleep(5)
+
+        driver.save_screenshot(save_name)
+        driver.quit()
+
+    os.system("rm movie.mp4")
+    os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4")
+    os.system("rm _tmp*.png")
     logging.debug("End Program")
