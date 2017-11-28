@@ -69,10 +69,10 @@ def printTrajectory(gmap, real, generated, trajectory):
     # logging.debug("plotting points")
 
     # print trajectory
-    gmap.scatter(lat, lng, '#2b1aad', size=5, marker=False)
+    gmap.scatter(lat, lng, '#2b1aad', size=1, marker=False)
 
     # print real point
-    gmap.scatter(lat_real, lng_real, '#1ccc42', size=5, marker=False)
+    gmap.scatter(lat_real, lng_real, '#1ccc42', size=1, marker=False)
 
     # print generated point
     gmap.scatter(lat_generated, lng_generated, '#cc1b1b', size=1, marker=False)
@@ -91,11 +91,11 @@ def printTrajectory(gmap, real, generated, trajectory):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    max = 501
+    max = 510
     vect = np.arange(1, max +1)
     for numb in vect:
         name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
-        path = "/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-NoGraph/3/"
+        path = "/Users/alessandrozonta/Desktop/Experiment-TestTest/2/"
         trajectories_label, json_file = reanInfo(path + name)
 
         # lets try the first one
@@ -128,7 +128,7 @@ if __name__ == "__main__":
             lat_real.append(el[0])
             lng_real.append(el[1])
 
-        gmap = gmplot.GoogleMapPlotter(lat_real[0], lng_real[0], 19)
+        gmap = gmplot.GoogleMapPlotter(lat_real[0], lng_real[0], 20)
 
         for el in trajectories_label:
             printTrajectory(gmap, json_file[el]["real"], json_file[el]["generated"], json_file[el]["trajectory"])
@@ -146,18 +146,18 @@ if __name__ == "__main__":
         # --------------------------------------------------------------
         # --------------------------------------------------------------
 
-        driver = webdriver.Chrome()
-        driver.get("file://" + path + name)
-        save_name = '_tmp%05d.png' % numb
+        # driver = webdriver.Chrome()
+        # driver.get("file://" + path + name)
+        # save_name = '_tmp%05d.png' % numb
+        #
+        # time.sleep(5)
+        #
+        # time.sleep(5)
+        #
+        # driver.save_screenshot(save_name)
+        # driver.quit()
 
-        time.sleep(5)
-
-        time.sleep(5)
-
-        driver.save_screenshot(save_name)
-        driver.quit()
-
-    os.system("rm movie.mp4")
-    os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4")
-    os.system("rm _tmp*.png")
-    logging.debug("End Program")
+    # os.system("rm movie.mp4")
+    # os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4")
+    # os.system("rm _tmp*.png")
+    # logging.debug("End Program")

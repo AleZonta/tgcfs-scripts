@@ -97,7 +97,7 @@ def single_elaboration(total, max):
         for generation in experiment[1]:
             lll = []
             for el in generation:
-                lll.append(int(el.replace(",", "")))
+                lll.append(float(el.replace(",", "")))
             list_average.append(np.average(np.array(lll)))
             list_std.append(np.std(np.array(lll)))
             list_generation.append(gen)
@@ -213,6 +213,8 @@ def analise_both_single_folder(path, number, max_agent, max_classifier):
     scaled_version_classifier, gen_classifier = single_elaboration(total_classifier, max_classifier)
 
     plt.figure()
+    sns.set_style("darkgrid")
+
     plt.errorbar(gen_agent, scaled_version_agent)
     plt.errorbar(gen_classifier, scaled_version_classifier)
     plt.ylim(0, 1)
@@ -224,17 +226,17 @@ def analise_both_single_folder(path, number, max_agent, max_classifier):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    max_agent = 8000
-    max_classifier = 16000
+    max_agent = 200
+    max_classifier = 400
     time_agent_more_classifier = 0
     # one = True  # agent
     # # one = False  # classifier
     # analise("/Users/alessandrozonta/Desktop/res", one, max_agent, max_classifier)
     # analise_both("/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance", max_agent, max_classifier, time_agent_more_classifier)
 
-    path = "/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance"
+    path = "/Volumes/TheMaze/TuringLearning/SIKS"
     res = how_many_folder(path)
 
-    analise_both_single_folder(path, res[0], max_agent, max_classifier)
+    analise_both_single_folder(path, res[2], max_agent, max_classifier)
 
     logging.debug("End Program")

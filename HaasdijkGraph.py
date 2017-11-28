@@ -89,7 +89,7 @@ def printGraph(total, number):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    total_agent, total_classifier = analise("/Users/alessandrozonta/Desktop/Experiment-Test")
+    total_agent, total_classifier = analise("/Volumes/TheMaze/TuringLearning/SIKS/")
 
     logging.debug("there are " + str(len(total_agent)) + " different results in this folder")
 
