@@ -19,12 +19,11 @@ if __name__ == "__main__":
         path = "/Volumes/TheMaze/TuringLearning/SIKS/" + str(el) + "/"
         files = 0
         for i in os.listdir(path):
-            if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
+            if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".html" in i:
                 files += 1
 
         max = files
         vect = np.arange(1, max + 1 )
-
 
         for numb in vect:
             name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".html"
@@ -52,7 +51,8 @@ if __name__ == "__main__":
             else:
                 logging.debug("File already exists " + str(numb))
 
-    #os.system("rm movie.mp4")
-    #os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4")
-    # os.system("rm _tmp*.png")
+        os.system("cd " + path)
+        os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie" + str(el) + ".mp4")
+        os.system("rm _tmp*.png")
+
     logging.debug("End Program")

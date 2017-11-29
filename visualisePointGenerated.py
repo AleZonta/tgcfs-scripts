@@ -91,73 +91,33 @@ def printTrajectory(gmap, real, generated, trajectory):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    max = 510
-    vect = np.arange(1, max +1)
-    for numb in vect:
-        name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
-        path = "/Users/alessandrozonta/Desktop/Experiment-TestTest/2/"
-        trajectories_label, json_file = reanInfo(path + name)
+    num = [4]
+    for el in num:
+        path = "/Users/alessandrozonta/Desktop/Experiment-TestTest/" + str(el) + "/"
+        files = 0
+        for i in os.listdir(path):
+            if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
+                files += 1
 
-        # lets try the first one
-        # print "----------------- first one -----------------"
-        # print json_file[trajectories_label[0]]["real"]
-        # print json_file[trajectories_label[0]]["generated"]
-        # print json_file[trajectories_label[0]]["trajectory"]
-        # # lets try the second one
-        # print "----------------- second one -----------------"
-        # print json_file[trajectories_label[1]]["real"]
-        # print json_file[trajectories_label[1]]["generated"]
-        # print json_file[trajectories_label[1]]["trajectory"]
-        # # lets try the third one
-        # print "----------------- third one -----------------"
-        # print json_file[trajectories_label[2]]["real"]
-        # print json_file[trajectories_label[2]]["generated"]
-        # print json_file[trajectories_label[2]]["trajectory"]
-        #
-        # # transform trajectory in lat and lng
-        # lat = []
-        # lng = []
-        # for el in json_file[trajectories_label[0]]["trajectory"]:
-        #     lat.append(el[0])
-        #     lng.append(el[1])
+        max = files
+        vect = np.arange(1, max +1)
+        for numb in vect:
+            name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
+            trajectories_label, json_file = reanInfo(path + name)
 
-        # center lat, center lng, zoom
-        lat_real = []
-        lng_real = []
-        for el in json_file[trajectories_label[0]]["real"]:
-            lat_real.append(el[0])
-            lng_real.append(el[1])
+            # center lat, center lng, zoom
+            lat_real = []
+            lng_real = []
+            for el in json_file[trajectories_label[0]]["real"]:
+                lat_real.append(el[0])
+                lng_real.append(el[1])
 
-        gmap = gmplot.GoogleMapPlotter(lat_real[0], lng_real[0], 20)
+            gmap = gmplot.GoogleMapPlotter(lat_real[0], lng_real[0], 20)
 
-        for el in trajectories_label:
-            printTrajectory(gmap, json_file[el]["real"], json_file[el]["generated"], json_file[el]["trajectory"])
+            for el in trajectories_label:
+                printTrajectory(gmap, json_file[el]["real"], json_file[el]["generated"], json_file[el]["trajectory"])
 
-        logging.debug("generating map " + str(numb))
-        name = name[:-4]
-        name += ".html"
-        gmap.draw(path + name)
-
-        # --------------------------------------------------------------
-        # --------------------------------------------------------------
-        # it requires this command to work
-        # selenium-server -port 4444
-        # on console of course
-        # --------------------------------------------------------------
-        # --------------------------------------------------------------
-
-        # driver = webdriver.Chrome()
-        # driver.get("file://" + path + name)
-        # save_name = '_tmp%05d.png' % numb
-        #
-        # time.sleep(5)
-        #
-        # time.sleep(5)
-        #
-        # driver.save_screenshot(save_name)
-        # driver.quit()
-
-    # os.system("rm movie.mp4")
-    # os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4")
-    # os.system("rm _tmp*.png")
-    # logging.debug("End Program")
+            logging.debug("generating map " + str(numb))
+            name = name[:-4]
+            name += ".html"
+            gmap.draw(path + name)

@@ -1,12 +1,14 @@
 import logging
-
+import gmplot
+import json
+import zipfile
 from pandas import np
 import pandas as pd
 import imgkit
 from selenium import webdriver
 import time
 import os
-from math import sin, cos, sqrt, atan2, radians, degrees
+from math import sin, cos, sqrt, atan2, radians, degrees, fabs
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -42,77 +44,73 @@ def computeBearing(lat1, lon1, lat2, lon2):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    # path = "/Volumes/TheMaze/TuringLearning/SIKS/5/"
-    # files = 0
-    # for i in os.listdir(path):
-    #     if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
-    #         files += 1
-    #
-    # max = files
-    # vect = np.arange(1, max +1)
-    # real_distances = []
-    # for numb in vect:
-    #     logging.debug("Analysing trajectory " + str(numb))
-    #     name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
-    #
-    #     trajectories_label, json_file = reanInfo(path + name)
-    #
-    #     # real points
-    #     lat_real = []
-    #     lng_real = []
-    #     for el in json_file[trajectories_label[0]]["real"]:
-    #         lat_real.append(el[0])
-    #         lng_real.append(el[1])
-    #
-    #     # generated points
-    #     lat_generated = []
-    #     lng_generated = []
-    #     for label in trajectories_label:
-    #         for el in json_file[label]["generated"]:
-    #             lat_generated.append(el[0])
-    #             lng_generated.append(el[1])
-    #
-    #     # last point trajectory
-    #     lat_last = []
-    #     lng_last = []
-    #     for el in json_file[trajectories_label[0]]["trajectory"]:
-    #         lat_last.append(el[0])
-    #         lng_last.append(el[1])
-    #
-    #
-    #
-    #     distances = []
-    #     # compute distance
-    #     for i in range(len(lat_generated)):
-    #         distances.append(float(coputeDistance(lat_real[0],lng_real[0], lat_generated[i], lng_generated[i])))
-    #
-    #     array = np.array(distances)
-    #     real_distances.append((np.max(array), np.min(array), np.median(array)))
-    #
-    #
-    # max_value = []
-    # min = []
-    # median = []
-    # for el in real_distances:
-    #     max_value.append(el[0])
-    #     min.append(el[1])
-    #     median.append(el[2])
-    #
-    # plt.figure(0)
-    # sns.set_style("darkgrid")
-    # plt.plot(max_value)
-    # plt.plot(min)
-    # plt.plot(median)
-    # plt.xlabel("Generation")
-    # plt.ylabel("Distance (metres) point generated with real point")
-    # plt.legend(("Max Distance", "Min Distance", "Median Distance"))
-    #
-    # plt.show()
-    lat1 = 52.320961
-    lon1 = 4.869281
+    path = "/Volumes/TheMaze/TuringLearning/SIKS/6/"
+    files = 0
+    for i in os.listdir(path):
+        if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
+            files += 1
 
-    lat2 = 52.324658
-    lon2 = 4.869103
+    max = files
+    vect = np.arange(1, max +1)
+    real_distances = []
+    for numb in vect:
+        logging.debug("Analysing trajectory " + str(numb))
+        name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
 
-    print computeBearing(float(lat1), float(lon1), float(lat2), float(lon2))
+        trajectories_label, json_file = reanInfo(path + name)
+
+        # real points
+        lat_real = []
+        lng_real = []
+        for el in json_file[trajectories_label[0]]["real"]:
+            lat_real.append(el[0])
+            lng_real.append(el[1])
+
+        # generated points
+        lat_generated = []
+        lng_generated = []
+        for label in trajectories_label:
+            for el in json_file[label]["generated"]:
+                lat_generated.append(el[0])
+                lng_generated.append(el[1])
+
+        # last point trajectory
+        lat_last = []
+        lng_last = []
+        for el in json_file[trajectories_label[0]]["trajectory"]:
+            lat_last.append(el[0])
+            lng_last.append(el[1])
+
+        real_bearing = computeBearing(lat_last[0], lng_last[0], lat_real[0], lng_real[0])
+
+        distances = []
+        # compute distance
+        for i in range(len(lat_generated)):
+            # compute the distances
+            bearing = computeBearing(lat_last[0], lng_last[0], lat_generated[i], lng_generated[i])
+            distances.append(fabs(real_bearing - bearing))
+
+        array = np.array(distances)
+        real_distances.append((np.max(array), np.min(array), np.median(array)))
+
+
+    max_value = []
+    min = []
+    median = []
+    for el in real_distances:
+        max_value.append(el[0])
+        min.append(el[1])
+        median.append(el[2])
+
+    plt.figure(0)
+    sns.set_style("darkgrid")
+    plt.plot(max_value)
+    plt.plot(min)
+    plt.plot(median)
+    plt.xlabel("Generation")
+    plt.ylabel("Difference in bearing points")
+    plt.legend(("Max Differnece", "Min Difference", "Median Difference"))
+
+    plt.show()
+
 
