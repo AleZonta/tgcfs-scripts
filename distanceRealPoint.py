@@ -54,7 +54,7 @@ def coputeDistance(lat1, lon1, lat2, lon2):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Volumes/TheMaze/TuringLearning/SIKS/5/"
+    path = "/Users/alessandrozonta/Desktop/Das5/0/"
     files = 0
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
@@ -63,6 +63,7 @@ if __name__ == "__main__":
     max = files
     vect = np.arange(1, max +1)
     real_distances = []
+    arrays = []
     for numb in vect:
         logging.debug("Analysing trajectory " + str(numb))
         name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
@@ -112,31 +113,35 @@ if __name__ == "__main__":
         for i in range(len(lat_generated)):
             distances.append(float(coputeDistance(lat_real[0],lng_real[0], lat_generated[i], lng_generated[i])))
 
+
         array = np.array(distances)
-        real_distances.append((np.max(array), np.min(array), np.median(array)))
+        arrays.append(array)
+        real_distances.append((np.max(array), np.min(array), np.median(array), np.std(array)))
 
 
+    x = []
     max_value = []
     min = []
     median = []
+    std = []
+    x = np.arange(0, len(real_distances))
     for el in real_distances:
         max_value.append(el[0])
         min.append(el[1])
         median.append(el[2])
+        std.append(el[3])
 
     plt.figure(0)
     sns.set_style("darkgrid")
-    plt.plot(max_value)
-    plt.plot(min)
-    plt.plot(median)
-    plt.xlabel("Generation")
-    plt.ylabel("Distance (metres) point generated with real point")
-    plt.legend(("Max Distance", "Min Distance", "Median Distance"))
+    # plt.plot(max_value)
+    # plt.plot(min)
+    # plt.plot(median)
+    plt.errorbar(x, median, std, linestyle='None')
+    # plt.xlabel("Generation")
+    # plt.ylabel("Distance (metres) point generated with real point")
+    # plt.legend(("Max Distance", "Min Distance", "Median Distance"))
 
     plt.show()
-
-
-
 
     # os.system("rm movie.mp4")
     # os.system("ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4")

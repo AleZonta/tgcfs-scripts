@@ -91,9 +91,9 @@ def printTrajectory(gmap, real, generated, trajectory):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    num = [4]
+    num = [0]
     for el in num:
-        path = "/Users/alessandrozonta/Desktop/Experiment-TestTest/" + str(el) + "/"
+        path = "/Users/alessandrozonta/Desktop/Das5/" + str(el) + "/"
         files = 0
         for i in os.listdir(path):
             if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:

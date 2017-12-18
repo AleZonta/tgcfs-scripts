@@ -44,7 +44,7 @@ def computeBearing(lat1, lon1, lat2, lon2):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Volumes/TheMaze/TuringLearning/SIKS/6/"
+    path = "/Users/alessandrozonta/Desktop/Das5/0/"
     files = 0
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
@@ -91,25 +91,25 @@ if __name__ == "__main__":
             distances.append(fabs(real_bearing - bearing))
 
         array = np.array(distances)
-        real_distances.append((np.max(array), np.min(array), np.median(array)))
+        real_distances.append((np.max(array), np.min(array), np.median(array), np.std(array)))
 
 
     max_value = []
     min = []
     median = []
+    std = []
     for el in real_distances:
         max_value.append(el[0])
         min.append(el[1])
         median.append(el[2])
+        std.append(el[3])
 
     plt.figure(0)
     sns.set_style("darkgrid")
-    plt.plot(max_value)
-    plt.plot(min)
-    plt.plot(median)
-    plt.xlabel("Generation")
-    plt.ylabel("Difference in bearing points")
-    plt.legend(("Max Differnece", "Min Difference", "Median Difference"))
+    plt.errorbar(x, median, std, linestyle='None')
+    # plt.xlabel("Generation")
+    # plt.ylabel("Difference in bearing points")
+    # plt.legend(("Max Differnece", "Min Difference", "Median Difference"))
 
     plt.show()
 
