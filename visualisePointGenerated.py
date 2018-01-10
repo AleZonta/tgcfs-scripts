@@ -37,7 +37,7 @@ def printMap():
     lat = [37.428]
     lng = [-122.145]
     # gmap.plot(lat, lng, 'cornflowerblue', edge_width=10)
-    gmap.scatter(lat, lng, '#3B0B39', size=40, marker=False)
+    gmap.scatter(lat, lng, '#3B0B39', size=1, marker=False)
     # gmap.scatter(marker_lats, marker_lngs, 'k', marker=True)
 
     gmap.draw("mymap.html")
@@ -69,13 +69,13 @@ def printTrajectory(gmap, real, generated, trajectory):
     # logging.debug("plotting points")
 
     # print trajectory
-    gmap.scatter(lat, lng, '#2b1aad', size=1, marker=False)
+    gmap.scatter(lat, lng, '#2b1aad', size=0.1, marker=False)
 
     # print real point
-    gmap.scatter(lat_real, lng_real, '#1ccc42', size=1, marker=False)
+    gmap.scatter(lat_real, lng_real, '#1ccc42', size=0.1, marker=False)
 
     # print generated point
-    gmap.scatter(lat_generated, lng_generated, '#cc1b1b', size=1, marker=False)
+    gmap.scatter(lat_generated, lng_generated, '#cc1b1b', size=0.1, marker=False)
 
     # connect real point with generated
     lat_connection = []
@@ -85,15 +85,15 @@ def printTrajectory(gmap, real, generated, trajectory):
     lat_connection.append(lat_generated[0])
     lng_connection.append(lng_generated[0])
 
-    gmap.plot(lat_connection, lng_connection, 'cornflowerblue', edge_width=10)
+    gmap.plot(lat_connection, lng_connection, 'cornflowerblue', edge_width=5)
 
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    num = [0]
+    num = [3]
     for el in num:
-        path = "/Users/alessandrozonta/Desktop/Das5/" + str(el) + "/"
+        path = "/Volumes/TheMaze/TuringLearning/Experiment Christmas Holidays/Experiment-commalambda100/" + str(el) + "/"
         files = 0
         for i in os.listdir(path):
             if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:

@@ -1,12 +1,8 @@
 import logging
-import gmplot
 import json
 import zipfile
 from pandas import np
 import pandas as pd
-import imgkit
-from selenium import webdriver
-import time
 import os
 from math import sin, cos, sqrt, atan2, radians, degrees, fabs
 import matplotlib.pyplot as plt
@@ -41,10 +37,11 @@ def computeBearing(lat1, lon1, lat2, lon2):
     bearing = (bearing + 360) % 360
     return bearing
 
+
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Users/alessandrozonta/Desktop/Das5/0/"
+    path = "/Users/alessandrozonta/Desktop/23 ni++/"
     files = 0
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
@@ -54,10 +51,14 @@ if __name__ == "__main__":
     vect = np.arange(1, max +1)
     real_distances = []
     for numb in vect:
-        logging.debug("Analysing trajectory " + str(numb))
+        if numb%100 == 0:
+            logging.debug("Analysing trajectory " + str(numb))
         name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
 
         trajectories_label, json_file = reanInfo(path + name)
+
+        if numb == 810:
+            test_stop_here = True
 
         # real points
         lat_real = []
@@ -81,35 +82,38 @@ if __name__ == "__main__":
             lat_last.append(el[0])
             lng_last.append(el[1])
 
-        real_bearing = computeBearing(lat_last[0], lng_last[0], lat_real[0], lng_real[0])
+        real_bearing = computeBearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_real[0], lng_real[0])
 
         distances = []
         # compute distance
         for i in range(len(lat_generated)):
             # compute the distances
-            bearing = computeBearing(lat_last[0], lng_last[0], lat_generated[i], lng_generated[i])
-            distances.append(fabs(real_bearing - bearing))
+            bearing = computeBearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_generated[i], lng_generated[i])
+            distances.append(fabs(bearing - real_bearing))
 
         array = np.array(distances)
-        real_distances.append((np.max(array), np.min(array), np.median(array), np.std(array)))
+        real_distances.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
 
 
     max_value = []
     min = []
-    median = []
+    mean = []
     std = []
+    x = np.arange(0, len(real_distances))
     for el in real_distances:
+        print el
         max_value.append(el[0])
         min.append(el[1])
-        median.append(el[2])
+        mean.append(el[2])
         std.append(el[3])
+
 
     plt.figure(0)
     sns.set_style("darkgrid")
-    plt.errorbar(x, median, std, linestyle='None')
+    plt.errorbar(x, mean, std, linestyle='None')
     # plt.xlabel("Generation")
     # plt.ylabel("Difference in bearing points")
-    # plt.legend(("Max Differnece", "Min Difference", "Median Difference"))
+    # plt.legend(("Max Differnece", "Min Difference", "mean Difference"))
 
     plt.show()
 

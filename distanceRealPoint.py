@@ -54,7 +54,7 @@ def coputeDistance(lat1, lon1, lat2, lon2):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Users/alessandrozonta/Desktop/Das5/0/"
+    path = "/Users/alessandrozonta/Desktop/23 ni++/"
     files = 0
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
