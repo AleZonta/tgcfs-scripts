@@ -277,7 +277,6 @@ if __name__ == "__main__":
 
     res = how_many_folder(path)
 
-    # res = ["23 ni++"]
     num_folder = len(res)
     logging.debug("Folder to analise -> " + str(num_folder))
 
@@ -304,10 +303,14 @@ if __name__ == "__main__":
 
 
             x = []
+            max_value = []
+            min_value = []
             mean = []
             std = []
             x = np.arange(0, len(real_distances))
             for el in real_distances:
+                max_value.append(el[0])
+                min_value.append(el[1])
                 mean.append(el[2])
                 std.append(el[3])
 
@@ -316,16 +319,23 @@ if __name__ == "__main__":
             max_median = 1.5
             median_norm = []
             std_norm = []
-
+            max_value_norm = []
+            min_value_norm = []
             for i in range(len(mean)):
                 median_norm.append((((mean[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
                 std_norm.append((((std[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
+                max_value_norm.append((((max_value[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
+                min_value_norm.append((((min_value[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
 
             x_bearing = []
+            max_value_bearing = []
+            min_value_bearing = []
             median_bearing = []
             std_bearing = []
             x_bearing = np.arange(0, len(real_distances_bearing))
             for el in real_distances_bearing:
+                max_value_bearing.append(el[0])
+                min_value_bearing.append(el[1])
                 median_bearing.append(el[2])
                 std_bearing.append(el[3])
 
@@ -334,10 +344,13 @@ if __name__ == "__main__":
             max_median_b = 360.0
             median_norm_b = []
             std_norm_b = []
-
+            max_value_norm_b = []
+            min_value_norm_b = []
             for i in range(len(median_bearing)):
                 median_norm_b.append((((median_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
                 std_norm_b.append((((std_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
+                max_value_norm_b.append((((max_value_bearing[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
+                min_value_norm_b.append((((min_value_bearing[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
 
             plt.figure(figsize=(12, 6))
             sns.set_style("darkgrid")
@@ -353,6 +366,36 @@ if __name__ == "__main__":
             logging.debug("Saving graph")
 
             plt.savefig(real_path)
+
+            plt.figure(figsize=(12, 6))
+            sns.set_style("darkgrid")
+            plt.errorbar(x, mean, std, elinewidth=0.5)
+            plt.errorbar(x, min_value)
+            plt.errorbar(x, max_value)
+            plt.xlabel("Generation")
+            t = u"\u00b0"
+            plt.ylabel("Distance MPD")
+            plt.legend(("Median", "Min", "Max"))
+
+            logging.debug("Saving graph1")
+            real_path = path + "/" + str(folder) + "/" + "graph1.png"
+            plt.savefig(real_path)
+
+            plt.figure(figsize=(12, 6))
+            sns.set_style("darkgrid")
+            plt.errorbar(x_bearing, median_bearing, std_bearing, elinewidth=0.5)
+            plt.errorbar(x, min_value_bearing)
+            plt.errorbar(x, max_value_bearing)
+            plt.xlabel("Generation")
+            t = u"\u00b0"
+            plt.ylabel("Distance MBD")
+            plt.legend(("Median", "Min", "Max"))
+
+            logging.debug("Saving graph2")
+            real_path = path + "/" + str(folder) + "/" + "graph2.png"
+            plt.savefig(real_path)
+
+
         else:
             logging.debug("Graph is already there")
 

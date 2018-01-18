@@ -234,9 +234,9 @@ if __name__ == "__main__":
     # analise("/Users/alessandrozonta/Desktop/res", one, max_agent, max_classifier)
     # analise_both("/Users/alessandrozonta/Desktop/tl-idsa-tot/results/Experiment-Virulance", max_agent, max_classifier, time_agent_more_classifier)
 
-    path = "/Users/alessandrozonta/Desktop/Das5"
+    path = "/Volumes/TheMaze/TuringLearning/Experiment Christmas Holidays/das5/Experiment-newNonUniform/"
     res = how_many_folder(path)
 
-    analise_both_single_folder(path, res[0], max_agent, max_classifier)
+    analise_both_single_folder(path, res[3], max_agent, max_classifier)
 
     logging.debug("End Program")

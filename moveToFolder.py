@@ -8,10 +8,11 @@ import shutil
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    first_path = "/Volumes/TheMaze/TuringLearning/Experiment Christmas Holidays/"
+    first_path = "/Volumes/TheMaze/TuringLearning/january/"
 
     folders = how_many_fatherFolder(first_path)
 
+    folders = ["Experiment-uncorrelatedGaussian"]
     for experiemnt in folders:
         logging.debug("Folder under analysis -> " + str(experiemnt))
 
@@ -35,4 +36,19 @@ if __name__ == "__main__":
                 if "graph" not in pngFile:
                     count += 1
                     shutil.move(pngFile, directory)
-            logging.debug("moved " + str(count))
+            logging.debug("folder " + str(el) + " moved " + str(count) + " pic")
+
+            fourth_path = third_path + "scores-12-12.zip"
+            if os.path.exists(fourth_path):
+                directory = third_path + "scores"
+                try:
+                    os.stat(directory)
+                except:
+                    os.mkdir(directory)
+
+                count = 0
+                for zipFile in glob.iglob(os.path.join(third_path, "*.zip")):
+                    if "scores" in zipFile:
+                        count += 1
+                        shutil.move(zipFile, directory)
+                logging.debug("folder " + str(el) + " moved " + str(count) + " scores")

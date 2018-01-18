@@ -41,7 +41,7 @@ def computeBearing(lat1, lon1, lat2, lon2):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Users/alessandrozonta/Desktop/23 ni++/"
+    path = "/Users/alessandrozonta/Desktop/Experiment-testnewoutput/1/"
     files = 0
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
@@ -56,6 +56,7 @@ if __name__ == "__main__":
         name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
 
         trajectories_label, json_file = reanInfo(path + name)
+
 
         if numb == 810:
             test_stop_here = True
@@ -101,7 +102,6 @@ if __name__ == "__main__":
     std = []
     x = np.arange(0, len(real_distances))
     for el in real_distances:
-        print el
         max_value.append(el[0])
         min.append(el[1])
         mean.append(el[2])
@@ -110,10 +110,12 @@ if __name__ == "__main__":
 
     plt.figure(0)
     sns.set_style("darkgrid")
-    plt.errorbar(x, mean, std, linestyle='None')
+    plt.errorbar(x, mean, std)
+    plt.errorbar(x, min)
+    plt.errorbar(x, max_value)
     # plt.xlabel("Generation")
     # plt.ylabel("Difference in bearing points")
-    # plt.legend(("Max Differnece", "Min Difference", "mean Difference"))
+    plt.legend(("mean Difference", "min Difference", "max Difference"))
 
     plt.show()
 
