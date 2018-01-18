@@ -62,7 +62,7 @@ def coputeDistance(lat1, lon1, lat2, lon2):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Users/alessandrozonta/Desktop/Experiment-testnewTrajcetroies/2/"
+    path = "/Users/alessandrozonta/Desktop/Experiment-testnewTrajcetroies/10/"
     files = 0
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
@@ -102,18 +102,18 @@ if __name__ == "__main__":
                     lng_generated.append(el[1])
                     label_generated.append(json_file[labels]["id"])
 
-
-        distances = []
+        distance_per_trajectories = {}
         # now for every trajectory compute the distance of the generated distance
         for i in range(len(label_real)):
             index = [j for j, x in enumerate(label_generated) if x == label_real[i]]
+            distances = []
             for ind in index:
                 distances.append(
                     float(coputeDistance(lat_real[i], lng_real[i], lat_generated[ind], lng_generated[ind])))
 
-        array = np.array(distances)
-        total_distances.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
-        # total_distances.append(distance_per_trajectories)
+            array = np.array(distances)
+            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array))})
+        total_distances.append(distance_per_trajectories)
 
     x = []
     x = np.arange(0, len(total_distances))
@@ -122,20 +122,20 @@ if __name__ == "__main__":
     mean = []
     std = []
     for el in total_distances:
-        # a = []
-        # b = []
-        # c = []
-        # d = []
-        # for k in el.keys():
-        #     a.append(el[k][0])
-        #     b.append(el[k][1])
-        #     c.append(el[k][2])
-        #     d.append(el[k][3])
-        max_value.append(el[0])
-        min.append(el[1])
-        mean.append(el[2])
-        std.append(el[3])
-
+        a = []
+        b = []
+        c = []
+        d = []
+        for k in el.keys():
+            a.append(el[k][0])
+            b.append(el[k][1])
+            c.append(el[k][2])
+            d.append(el[k][3])
+        max_value.append(np.mean(np.array(a)))
+        min.append(np.mean(np.array(b)))
+        mean.append(np.mean(np.array(c)))
+        std.append(np.mean(np.array(d)))
+    
     plt.figure(0)
     sns.set_style("darkgrid")
     plt.errorbar(x, mean, std)

@@ -57,31 +57,65 @@ if __name__ == "__main__":
 
         trajectories_label, json_file = reanInfo(path + name)
 
-
-        if numb == 810:
-            test_stop_here = True
-
         # real points
         lat_real = []
         lng_real = []
-        for el in json_file[trajectories_label[0]]["real"]:
-            lat_real.append(el[0])
-            lng_real.append(el[1])
-
         # generated points
         lat_generated = []
         lng_generated = []
-        for label in trajectories_label:
-            for el in json_file[label]["generated"]:
-                lat_generated.append(el[0])
-                lng_generated.append(el[1])
+
+        label_real = []
+        label_generated = []
+        label_trajectory = []
 
         # last point trajectory
         lat_last = []
         lng_last = []
-        for el in json_file[trajectories_label[0]]["trajectory"]:
-            lat_last.append(el[0])
-            lng_last.append(el[1])
+        for labels in trajectories_label:
+            for el in json_file[labels]["real"]:
+                if el[0] not in lat_real:
+                    lat_real.append(el[0])
+                    lng_real.append(el[1])
+                    label_real.append(json_file[labels]["id"])
+
+            for el in json_file[labels]["generated"]:
+                if el[0] not in lat_generated:
+                    lat_generated.append(el[0])
+                    lng_generated.append(el[1])
+                    label_generated.append(json_file[labels]["id"])
+
+
+            for el in json_file[labels]["trajectory"]:
+                if el[0] not in lat_last:
+                    lat_last.append(el[0])
+                    lng_last.append(el[1])
+                    label_trajectory.append(json_file[labels]["id"])
+
+
+
+
+
+        # # real points
+        # lat_real = []
+        # lng_real = []
+        # for el in json_file[trajectories_label[0]]["real"]:
+        #     lat_real.append(el[0])
+        #     lng_real.append(el[1])
+        #
+        # # generated points
+        # lat_generated = []
+        # lng_generated = []
+        # for label in trajectories_label:
+        #     for el in json_file[label]["generated"]:
+        #         lat_generated.append(el[0])
+        #         lng_generated.append(el[1])
+
+        # last point trajectory
+        # lat_last = []
+        # lng_last = []
+        # for el in json_file[trajectories_label[0]]["trajectory"]:
+        #     lat_last.append(el[0])
+        #     lng_last.append(el[1])
 
         real_bearing = computeBearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_real[0], lng_real[0])
 
