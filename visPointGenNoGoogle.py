@@ -6,6 +6,7 @@ import json
 from pandas import np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import re
 
 
 def reanInfo(path):
@@ -322,6 +323,16 @@ def how_many_fatherFolder(path):
 
     return list
 
+def sorted_nicely(l):
+    """ Sorts the given iterable in the way that is expected.
+
+    Required arguments:
+    l -- The iterable to be sorted.
+
+    """
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
@@ -332,17 +343,16 @@ if __name__ == "__main__":
     #     logging.debug("path, max_agent and max_classifier not passed. Program not going to work")
     #     sys.exit()
 
-    first_path = "/Users/alessandrozonta/Desktop/"
+    first_path = "/Volumes/TheMaze/TuringLearning/january/latest/linear/"
 
     folders = how_many_fatherFolder(first_path)
 
-    folders = ["Experiment-TestNN"]
+    folders = ["Experiment-20top20top"]
     for experiemnt in folders:
         logging.debug("Folder under analysis -> " + str(experiemnt))
         second_path = first_path + experiemnt + "/"
         res = how_many_folder(second_path)
 
-        res = ["0"]
 
         num_folder = len(res)
         logging.debug("Folder to analise -> " + str(num_folder))
@@ -350,26 +360,25 @@ if __name__ == "__main__":
         for el in res:
             path = second_path + str(el) + "/"
 
-            if not os.path.exists(path + "_tmp00013.png"):
-                files = 0
-                for i in os.listdir(path):
-                    if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
-                        files += 1
+            # if not os.path.exists(path + "_tmp00013.png"):
+            names = []
+            for i in os.listdir(path):
+                if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
+                    names.append(i)
 
-                max = files
-                logging.debug("Files found " + str(max))
-                vect = np.arange(1, max + 1)
+            names = sorted_nicely(names)
 
-                for numb in vect:
-                    name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
-                    logging.debug("Analysing " + str(path) + str(name))
-                    trajectories_label, json_file = reanInfo(path + name)
+            for name in names:
+                # name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
+                numb = int(name.replace("trajectory-generatedPoints-", "").replace(".zip", "").split("-")[0])
+                logging.debug("Analysing " + str(path) + str(name))
+                trajectories_label, json_file = reanInfo(path + name)
 
-                    # manyTrajectories(json_file, trajectories_label, numb)
+                # manyTrajectories(json_file, trajectories_label, numb)
 
-                    plot_one_trajectory(trajectories_label, json_file, numb)
+                plot_one_trajectory(trajectories_label, json_file, numb)
 
-            else:
-                logging.debug("Pictures already present in the folder")
+            # else:
+            #     logging.debug("Pictures already present in the folder")
 
     logging.debug("End Program")

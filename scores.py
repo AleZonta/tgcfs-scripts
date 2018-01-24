@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import zipfile
 import os
+import re
 
 
 from pandas import DataFrame, np
@@ -42,29 +43,32 @@ if __name__ == "__main__":
     #     logging.debug("path, max_agent and max_classifier not passed. Program not going to work")
     #     sys.exit()
 
-    realpath = "/Volumes/TheMaze/TuringLearning/january/Experiment-hallOfFame/"
+    realpath = "/Volumes/TheMaze/TuringLearning/january/latest/linear/Experiment-plusplus/"
 
     res = how_many_folder(realpath)
     num_folder = len(res)
     logging.debug("Folder to analise -> " + str(num_folder))
 
-    res = ["1"]
     for el in res:
         logging.debug("Folder under analysis -> " + str(el))
-        second_path = realpath + str(el) + "/"
+        second_path = realpath + str(el) + "/scores/"
         # realpath = "/Users/alessandrozonta/Desktop/Experiment-testnewoutput/1/"
         files = 0
+        names = []
         for i in os.listdir(second_path):
-            if os.path.isfile(os.path.join(second_path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
+            if os.path.isfile(os.path.join(second_path, i)) and 'scores-' in i and ".zip" in i:
                 files += 1
+                names.append(i)
 
+        names.sort()
         max = files
         vect = np.arange(1, max + 1)
         # print vect
-        for numb in vect:
+        numb = 0
+        for name in names:
 
 
-            path = second_path + "/scores-" + str(numb) + "-" + str(numb) + ".zip"
+            path = second_path + name
 
             try:
                 with zipfile.ZipFile(path) as z:
@@ -79,9 +83,11 @@ if __name__ == "__main__":
 
                         v = []
 
+
                         for el in json_file["scores"]:
-                            vector = json.loads(el)
-                            v.append((int(vector[0]), int(vector[1]), int(vector[3])))
+                            # vector = json.loads(el)
+                            vect = el.split(",")
+                            v.append((int(vect[0].replace("[", "")), int(vect[1]), int(float(vect[3].replace("]",""))), vect[2]))
 
                         # sort the list of tuples
                         v.sort(key=lambda tup: tup[0])
@@ -105,11 +111,11 @@ if __name__ == "__main__":
                         min_cla = np.amin(classifier_array)
                         max_cla = np.amax(classifier_array)
                         unique_element_classifier = np.unique(classifier_array)
-                        print(unique_element_classifier)
-                        print(len(unique_element_classifier))
+                        # print(unique_element_classifier)
+                        # print(len(unique_element_classifier))
                         unique_element_agent = np.unique(agent_array)
-                        print(unique_element_agent)
-                        print(len(unique_element_agent))
+                        # print(unique_element_agent)
+                        # print(len(unique_element_agent))
 
                         dif_cla = max_cla - min_cla
 
@@ -163,6 +169,7 @@ if __name__ == "__main__":
                         fname = second_path + '_tmpscore%05d.png' % numb
                         plt.savefig(fname)
                         plt.clf()
+                numb += 1
             except:
                 pass
 

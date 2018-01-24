@@ -64,16 +64,22 @@ if __name__ == "__main__":
 
     path = "/Users/alessandrozonta/Desktop/Experiment-testnewTrajcetroies/10/"
     files = 0
+    names = []
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
             files += 1
+            names.append(i)
+
+    names.sort()
 
     max = files
     vect = np.arange(1, max + 1)
     total_distances = []
-    for numb in vect:
+    numb = 0
+    for name in names:
         logging.debug("Analysing trajectory " + str(numb))
-        name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
+        numb += 1
+        # name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
 
         trajectories_label, json_file, id_label = reanInfo(path + name)
 
@@ -135,7 +141,7 @@ if __name__ == "__main__":
         min.append(np.mean(np.array(b)))
         mean.append(np.mean(np.array(c)))
         std.append(np.mean(np.array(d)))
-    
+
     plt.figure(0)
     sns.set_style("darkgrid")
     plt.errorbar(x, mean, std)

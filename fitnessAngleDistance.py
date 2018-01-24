@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import logging
 import json
@@ -8,6 +9,9 @@ import os
 from math import sin, cos, sqrt, atan2, radians, degrees, fabs
 import matplotlib.pyplot as plt
 import seaborn as sns
+import re
+
+
 
 def single_elaboration(total, max):
     total_list_average = []
@@ -22,6 +26,8 @@ def single_elaboration(total, max):
             lll = []
             for el in generation:
                 lll.append(float(el.replace(",", "")))
+            if len(lll) > 100:
+                print("Be carefull, more than 100")
             list_average.append(np.average(np.array(lll)))
             list_std.append(np.std(np.array(lll)))
             list_generation.append(gen)
@@ -48,6 +54,17 @@ def single_elaboration(total, max):
 
     return scaled_version, total_list_generation[0]
 
+def how_many_fatherFolder(path):
+    directories = os.listdir(path)
+    if ".DS_Store" in directories:
+        directories.remove(".DS_Store")
+
+    list = []
+    for el in directories:
+        if ".py" not in el:
+            list.append(el)
+
+    return list
 
 def how_many_folder(path):
     directories = os.listdir(path)
@@ -134,7 +151,7 @@ def compute_distance(lat1, lon1, lat2, lon2):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
     distance = R * c
-    #distance in metres
+    # distance in metres
     return distance * 1000
 
 
@@ -149,24 +166,37 @@ def compute_bearing(lat1, lon1, lat2, lon2):
     return bearing
 
 
+def sorted_nicely(l):
+    """ Sorts the given iterable in the way that is expected.
+
+    Required arguments:
+    l -- The iterable to be sorted.
+
+    """
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
+
+
 def analise_distances(path, number):
     path = path + "/" + str(number) + "/"
-    files = 0
+    names = []
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
-            files += 1
+            names.append(i)
 
-    max = files
-    vect = np.arange(1, max + 1)
+    names = sorted_nicely(names)
+
     real_distances = []
     real_distances_bearing = []
     arrays = []
     arrays_b = []
-    for numb in vect:
-        if numb%100 == 0:
+    numb = 0
+    for name in names:
+        if numb % 100 == 0:
             logging.debug("Analysing trajectory " + str(numb))
 
-        name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
+        # name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
 
         trajectories_label, json_file = rean_info(path + name)
 
@@ -200,7 +230,6 @@ def analise_distances(path, number):
         arrays.append(array)
         real_distances.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
 
-
         # last point trajectory
         lat_last = []
         lng_last = []
@@ -208,13 +237,15 @@ def analise_distances(path, number):
             lat_last.append(el[0])
             lng_last.append(el[1])
 
-        real_bearing = compute_bearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_real[0], lng_real[0])
+        real_bearing = compute_bearing(lat_last[len(lat_last) - 1], lng_last[len(lat_last) - 1], lat_real[0],
+                                       lng_real[0])
 
         distances_bearing = []
         # compute distance
         for i in range(len(lat_generated)):
             # compute the distances
-            bearing = compute_bearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_generated[i], lng_generated[i])
+            bearing = compute_bearing(lat_last[len(lat_last) - 1], lng_last[len(lat_last) - 1], lat_generated[i],
+                                      lng_generated[i])
             distances_bearing.append(fabs(real_bearing - bearing))
 
         array_b = np.array(distances_bearing)
@@ -226,7 +257,7 @@ def analise_distances(path, number):
         # array = np.array(distances_bearing_scaled_version)
         arrays_b.append(array_b)
         real_distances_bearing.append((np.max(array_b), np.min(array_b), np.mean(array_b), np.std(array_b)))
-
+        numb += 1
     return real_distances, real_distances_bearing
 
 
@@ -257,145 +288,152 @@ def find_max_values_fitness(path):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    try:
-        path = sys.argv[1]
-    except Exception as e:
-        logging.debug("path non specified. Program not going to work")
-        sys.exit()
-
-    try:
-        override = sys.argv[2]
-    except Exception as e:
-        override = False
-
-
+    # try:
+    #     path = sys.argv[1]
+    # except Exception as e:
+    #     logging.debug("path non specified. Program not going to work")
+    #     sys.exit()
+    #
+    # try:
+    #     override = sys.argv[2]
+    # except Exception as e:
+    #     override = False
 
     # max_agent = 200
     # max_classifier = 400
     time_agent_more_classifier = 0
-    # path = "/Users/alessandrozonta/Desktop/"
+    first_path = "/Users/alessandrozonta/Desktop/"
+    override = True
 
-    res = how_many_folder(path)
+    folders = how_many_fatherFolder(first_path)
 
-    num_folder = len(res)
-    logging.debug("Folder to analise -> " + str(num_folder))
+    folders = ["Experiment-cccc"]
+    for experiemnt in folders:
+        logging.debug("Folder under analysis -> " + str(experiemnt))
+        path = first_path + experiemnt + "/"
 
-    for folder in res:
-        logging.debug("Analysing folder " + str(folder))
-        max_agent, max_classifier = find_max_values_fitness(path + "/" + str(folder) + "/")
-        logging.debug("Max fitness agent: " + str(max_agent) + ", Max fitness classifier: " + str(max_classifier))
+        res = how_many_folder(path)
 
-        real_path = path + "/" + str(folder) + "/" + "graph.png"
-        create = True
-        if not override:
-            if os.path.exists(real_path):
-                create = False
+        num_folder = len(res)
+        logging.debug("Folder to analise -> " + str(num_folder))
 
-        if create:
+        for folder in res:
+            logging.debug("Analysing folder " + str(folder))
+            max_agent, max_classifier = find_max_values_fitness(path + "/" + str(folder) + "/")
+            logging.debug("Max fitness agent: " + str(max_agent) + ", Max fitness classifier: " + str(max_classifier))
 
-            # read the fitness and return it scaled 0-1
-            logging.debug("Checking the fitness")
-            scaled_version_agent, gen_agent, scaled_version_classifier, gen_classifier = analise_single_folder(path, folder, max_agent, max_classifier)
+            real_path = path + "/" + str(folder) + "/" + "graph.png"
+            create = True
+            if not override:
+                if os.path.exists(real_path):
+                    create = False
 
-            # read all the trajectories for the distance to the real point
-            logging.debug("Checking the distances")
-            real_distances, real_distances_bearing = analise_distances(path, folder)
+            if create:
+
+                # read the fitness and return it scaled 0-1
+                logging.debug("Checking the fitness")
+                scaled_version_agent, gen_agent, scaled_version_classifier, gen_classifier = analise_single_folder(path,
+                                                                                                                   folder,
+                                                                                                                   max_agent,
+                                                                                                                   max_classifier)
+
+                # read all the trajectories for the distance to the real point
+                logging.debug("Checking the distances")
+                real_distances, real_distances_bearing = analise_distances(path, folder)
+
+                x = []
+                max_value = []
+                min_value = []
+                mean = []
+                std = []
+                x = np.arange(0, len(real_distances))
+                for el in real_distances:
+                    max_value.append(el[0])
+                    min_value.append(el[1])
+                    mean.append(el[2])
+                    std.append(el[3])
+
+                # normalise distances
+                max_median = 1.5
+                median_norm = []
+                std_norm = []
+                max_value_norm = []
+                min_value_norm = []
+                for i in range(len(mean)):
+                    median_norm.append((((mean[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
+                    std_norm.append((((std[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
+                    max_value_norm.append((((max_value[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
+                    min_value_norm.append((((min_value[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
+
+                x_bearing = []
+                max_value_bearing = []
+                min_value_bearing = []
+                median_bearing = []
+                std_bearing = []
+                x_bearing = np.arange(0, len(real_distances_bearing))
+                for el in real_distances_bearing:
+                    max_value_bearing.append(el[0])
+                    min_value_bearing.append(el[1])
+                    median_bearing.append(el[2])
+                    std_bearing.append(el[3])
+
+                # normalise distances
+                max_median_b = 360.0
+                median_norm_b = []
+                std_norm_b = []
+                max_value_norm_b = []
+                min_value_norm_b = []
+                for i in range(len(median_bearing)):
+                    median_norm_b.append((((median_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
+                    std_norm_b.append((((std_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
+                    max_value_norm_b.append((((max_value_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
+                    min_value_norm_b.append((((min_value_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
+
+                plt.figure(figsize=(12, 6))
+                sns.set_style("darkgrid")
+                plt.errorbar(gen_agent, scaled_version_agent)
+                plt.errorbar(gen_classifier, scaled_version_classifier)
+                plt.errorbar(x, min_value_norm)
+                plt.errorbar(x_bearing, min_value_norm_b)
+                plt.xlabel("Generation")
+                t = u"\u00b0"
+                plt.ylabel("Fitness, Distance (MPD= " + str(max_median) + "m; MBD= " + str(max_median_b) + t + ")")
+                plt.legend(("Agents", "Classifier", "Min Distance of the points generated from the real point",
+                            "Min Difference of the real bearing from the bearing generated"))
+
+                logging.debug("Saving graph")
+
+                plt.savefig(real_path)
+                # plt.show()
+
+                plt.figure(figsize=(12, 6))
+                sns.set_style("darkgrid")
+                plt.errorbar(x, mean, std, elinewidth=0.5)
+                plt.errorbar(x, min_value)
+                plt.errorbar(x, max_value)
+                plt.xlabel("Generation")
+                t = u"\u00b0"
+                plt.ylabel("Distance MPD")
+                plt.legend(("Median", "Min", "Max"))
+
+                logging.debug("Saving graph1")
+                real_path = path + "/" + str(folder) + "/" + "graph1.png"
+                plt.savefig(real_path)
+
+                plt.figure(figsize=(12, 6))
+                sns.set_style("darkgrid")
+                plt.errorbar(x_bearing, median_bearing, std_bearing, elinewidth=0.5)
+                plt.errorbar(x, min_value_bearing)
+                plt.errorbar(x, max_value_bearing)
+                plt.xlabel("Generation")
+                t = u"\u00b0"
+                plt.ylabel("Distance MBD")
+                plt.legend(("Median", "Min", "Max"))
+
+                logging.debug("Saving graph2")
+                real_path = path + "/" + str(folder) + "/" + "graph2.png"
+                plt.savefig(real_path)
 
 
-            x = []
-            max_value = []
-            min_value = []
-            mean = []
-            std = []
-            x = np.arange(0, len(real_distances))
-            for el in real_distances:
-                max_value.append(el[0])
-                min_value.append(el[1])
-                mean.append(el[2])
-                std.append(el[3])
-
-
-            # normalise distances
-            max_median = 1.5
-            median_norm = []
-            std_norm = []
-            max_value_norm = []
-            min_value_norm = []
-            for i in range(len(mean)):
-                median_norm.append((((mean[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
-                std_norm.append((((std[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
-                max_value_norm.append((((max_value[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
-                min_value_norm.append((((min_value[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
-
-            x_bearing = []
-            max_value_bearing = []
-            min_value_bearing = []
-            median_bearing = []
-            std_bearing = []
-            x_bearing = np.arange(0, len(real_distances_bearing))
-            for el in real_distances_bearing:
-                max_value_bearing.append(el[0])
-                min_value_bearing.append(el[1])
-                median_bearing.append(el[2])
-                std_bearing.append(el[3])
-
-
-            # normalise distances
-            max_median_b = 360.0
-            median_norm_b = []
-            std_norm_b = []
-            max_value_norm_b = []
-            min_value_norm_b = []
-            for i in range(len(median_bearing)):
-                median_norm_b.append((((median_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
-                std_norm_b.append((((std_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
-                max_value_norm_b.append((((max_value_bearing[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
-                min_value_norm_b.append((((min_value_bearing[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
-
-            plt.figure(figsize=(12, 6))
-            sns.set_style("darkgrid")
-            plt.errorbar(gen_agent, scaled_version_agent)
-            plt.errorbar(gen_classifier, scaled_version_classifier)
-            plt.errorbar(x, median_norm, std_norm, elinewidth=0.5)
-            plt.errorbar(x_bearing, median_norm_b, std_norm_b, elinewidth=0.5)
-            plt.xlabel("Generation")
-            t = u"\u00b0"
-            plt.ylabel("Fitness, Distance (MPD= " + str(max_median) + "m; MBD= " + str(max_median_b) + t +")")
-            plt.legend(("Agents", "Classifier", "Distance of the points generated from the real point", "Difference of the real bearing from the bearing generated"))
-
-            logging.debug("Saving graph")
-
-            plt.savefig(real_path)
-
-            plt.figure(figsize=(12, 6))
-            sns.set_style("darkgrid")
-            plt.errorbar(x, mean, std, elinewidth=0.5)
-            plt.errorbar(x, min_value)
-            plt.errorbar(x, max_value)
-            plt.xlabel("Generation")
-            t = u"\u00b0"
-            plt.ylabel("Distance MPD")
-            plt.legend(("Median", "Min", "Max"))
-
-            logging.debug("Saving graph1")
-            real_path = path + "/" + str(folder) + "/" + "graph1.png"
-            plt.savefig(real_path)
-
-            plt.figure(figsize=(12, 6))
-            sns.set_style("darkgrid")
-            plt.errorbar(x_bearing, median_bearing, std_bearing, elinewidth=0.5)
-            plt.errorbar(x, min_value_bearing)
-            plt.errorbar(x, max_value_bearing)
-            plt.xlabel("Generation")
-            t = u"\u00b0"
-            plt.ylabel("Distance MBD")
-            plt.legend(("Median", "Min", "Max"))
-
-            logging.debug("Saving graph2")
-            real_path = path + "/" + str(folder) + "/" + "graph2.png"
-            plt.savefig(real_path)
-
-
-        else:
-            logging.debug("Graph is already there")
-
+            else:
+                logging.debug("Graph is already there")

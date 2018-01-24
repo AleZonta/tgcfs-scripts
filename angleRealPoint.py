@@ -41,7 +41,7 @@ def computeBearing(lat1, lon1, lat2, lon2):
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Users/alessandrozonta/Desktop/Experiment-testnewoutput/1/"
+    path = "/Users/alessandrozonta/Desktop/Experiment-testnewTrajcetroies/10/"
     files = 0
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     max = files
     vect = np.arange(1, max +1)
-    real_distances = []
+    total_distances = []
     for numb in vect:
         if numb%100 == 0:
             logging.debug("Analysing trajectory " + str(numb))
@@ -79,23 +79,38 @@ if __name__ == "__main__":
                     label_real.append(json_file[labels]["id"])
 
             for el in json_file[labels]["generated"]:
-                if el[0] not in lat_generated:
-                    lat_generated.append(el[0])
-                    lng_generated.append(el[1])
-                    label_generated.append(json_file[labels]["id"])
+                lat_generated.append(el[0])
+                lng_generated.append(el[1])
+                label_generated.append(json_file[labels]["id"])
 
 
+            appo_lat = []
+            appo_lgn = []
             for el in json_file[labels]["trajectory"]:
-                if el[0] not in lat_last:
-                    lat_last.append(el[0])
-                    lng_last.append(el[1])
-                    label_trajectory.append(json_file[labels]["id"])
+                appo_lat.append(el[0])
+                appo_lgn.append(el[1])
 
+            lat_last.append(appo_lat[len(appo_lat) - 1])
+            lng_last.append(appo_lgn[len(appo_lgn) - 1])
+            label_trajectory.append(json_file[labels]["id"])
 
+        distance_per_trajectories = {}
 
+        for i in range(len(label_real)):
 
+            real_bearing = computeBearing(lat_last[i], lng_last[i], lat_real[i], lng_real[i])
 
-        # # real points
+            index = [j for j, x in enumerate(label_generated) if x == label_real[i]]
+            distances = []
+            for ind in index:
+                bearing = computeBearing(lat_last[i], lng_last[i], lat_generated[ind],
+                                         lng_generated[ind])
+                distances.append(fabs(bearing - real_bearing))
+            array = np.array(distances)
+            distance_per_trajectories.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
+        total_distances.append(distance_per_trajectories)
+
+            # # real points
         # lat_real = []
         # lng_real = []
         # for el in json_file[trajectories_label[0]]["real"]:
@@ -117,17 +132,17 @@ if __name__ == "__main__":
         #     lat_last.append(el[0])
         #     lng_last.append(el[1])
 
-        real_bearing = computeBearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_real[0], lng_real[0])
-
-        distances = []
-        # compute distance
-        for i in range(len(lat_generated)):
-            # compute the distances
-            bearing = computeBearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_generated[i], lng_generated[i])
-            distances.append(fabs(bearing - real_bearing))
-
-        array = np.array(distances)
-        real_distances.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
+        # real_bearing = computeBearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_real[0], lng_real[0])
+        #
+        # distances = []
+        # # compute distance
+        # for i in range(len(lat_generated)):
+        #     # compute the distances
+        #     bearing = computeBearing(lat_last[len(lat_last) -1], lng_last[len(lat_last) -1], lat_generated[i], lng_generated[i])
+        #     distances.append(fabs(bearing - real_bearing))
+        #
+        # array = np.array(distances)
+        # real_distances.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
 
 
     max_value = []

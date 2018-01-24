@@ -8,11 +8,10 @@ import shutil
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    first_path = "/Volumes/TheMaze/TuringLearning/january/"
+    first_path = "/Volumes/TheMaze/TuringLearning/january/latest/linear/"
 
     folders = how_many_fatherFolder(first_path)
 
-    folders = ["Experiment-uncorrelatedGaussian"]
     for experiemnt in folders:
         logging.debug("Folder under analysis -> " + str(experiemnt))
 
@@ -28,6 +27,8 @@ if __name__ == "__main__":
             directory = third_path + "pic"
             try:
                 os.stat(directory)
+                shutil.rmtree(directory)
+                os.mkdir(directory)
             except:
                 os.mkdir(directory)
 
