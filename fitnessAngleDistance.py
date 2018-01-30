@@ -307,14 +307,17 @@ if __name__ == "__main__":
 
     folders = how_many_fatherFolder(first_path)
 
-    folders = ["Experiment-cccc"]
+    folders = ["Experiment-dddd"]
     for experiemnt in folders:
         logging.debug("Folder under analysis -> " + str(experiemnt))
         path = first_path + experiemnt + "/"
 
         res = how_many_folder(path)
 
+        res = ["7"]
+
         num_folder = len(res)
+
         logging.debug("Folder to analise -> " + str(num_folder))
 
         for folder in res:

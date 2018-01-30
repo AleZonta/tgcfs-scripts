@@ -7,6 +7,8 @@ from pandas import np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import re
+import tqdm
+
 
 
 def reanInfo(path):
@@ -26,11 +28,8 @@ def reanInfo(path):
 
             return trajectories_label, json_file
 
+
 def analiseTra(json_file, trajectories_label):
-
-
-
-
     for trajectory in trajectories_label:
 
         lat = []
@@ -141,10 +140,6 @@ def manyTrajectories(json_file, trajectories_label, numb):
 
             total_info_trajectories[position].append((lat_generated, lng_generated))
 
-
-
-
-
     for i in range(len(total_trajectories)):
         j = i + 1
         plt.subplot(3, 4, j)
@@ -176,25 +171,26 @@ def manyTrajectories(json_file, trajectories_label, numb):
     plt.close()
 
 
-def plot_one_trajectory(trajectories_label, json_file, numb):
+def plot_one_trajectory(trajectories_label, json_file, numb, max, real_total_min_lat, real_total_min_lng, real_total_max_lat, real_total_max_lng):
     # real_total_min_lat = 52.045906899999999
-    # real_total_min_lng = 4.3315641388856605
-    # real_total_max_lat = 52.045937623618009
+    # real_total_min_lng = 4.331558
+    # real_total_max_lat = 52.045942
     # real_total_max_lng = 4.3316090999999997
-    real_total_min_lat = 52.00
-    real_total_min_lng = 4.32
-    real_total_max_lat = 52.1
-    real_total_max_lng = 4.35
+    # real_total_min_lat = 52.0422
+    # real_total_min_lng = 4.31475
+    # real_total_max_lat = 52.0427
+    # real_total_max_lng = 4.3155
 
-    logging.debug("Computing graph " + str(numb))
+    # logging.debug("Computing graph " + str(numb))
 
-    plt.figure(numb)
+    plt.figure(figsize=(10, 8))
 
     for ell in trajectories_label:
         printTrajectory(json_file[ell]["real"], json_file[ell]["generated"], json_file[ell]["trajectory"],
                         real_total_min_lat, real_total_min_lng, real_total_max_lat, real_total_max_lng, plt,
-                        json_file[ell]["classification"])
+                        json_file[ell]["classification"], max)
 
+    plt.colorbar()
     save_name = path + '_tmp%05d.png' % numb
     plt.savefig(save_name, dpi=None, facecolor='w', edgecolor='w', orientation='portrait', papertype=None,
                 format=None, transparent=False, bbox_inches=None, pad_inches=0.1, frameon=None)
@@ -202,7 +198,7 @@ def plot_one_trajectory(trajectories_label, json_file, numb):
 
 
 def printTrajectory(real, generated, trajectory, real_total_min_lat, real_total_min_lng, real_total_max_lat,
-                    real_total_max_lng, plt, fakeOrReal):
+                    real_total_max_lng, plt, fitness, max):
     # logging.debug("converting JSON list to list for the library")
     # transform trajectory in lat and lng
     lat = []
@@ -227,7 +223,7 @@ def printTrajectory(real, generated, trajectory, real_total_min_lat, real_total_
 
     sns.set_style("darkgrid")
 
-    # plt.axis([real_total_min_lat, real_total_max_lat, real_total_min_lng, real_total_max_lng])
+    plt.axis([real_total_min_lat, real_total_max_lat, real_total_min_lng, real_total_max_lng])
 
     # print trajectory
     plt.plot(lat, lng, color='b', marker='o')
@@ -236,11 +232,8 @@ def printTrajectory(real, generated, trajectory, real_total_min_lat, real_total_
     plt.plot(lat_real, lng_real, color='k', marker='o')
 
     # print generated point
-    for i in range(len(lat_generated)):
-        if fakeOrReal:
-            plt.plot(lat_generated[i], lng_generated[i], color='b', marker='o')
-        else:
-            plt.plot(lat_generated[i], lng_generated[i], color='r', marker='o')
+    # for i in range(len(lat_generated)):
+    plt.scatter(lat_generated, lng_generated, c=[fitness], marker='o', vmin=0., vmax=max, cmap='autumn')
 
 
 def find_max_min_coordinates(real, generated, trajectory):
@@ -323,6 +316,26 @@ def how_many_fatherFolder(path):
 
     return list
 
+
+def find_max_fitnes(path):
+    name = path + "tgcfs.EA.Agents-fitness.csv"
+    try:
+        with open(name) as f:
+            lis = [line.split() for line in f]
+            lis = lis[1:]
+            # need to find all the last position
+            fit = []
+            for el in lis:
+                fit.append(float(el[len(el) - 1].replace(",","")))
+
+            max_finale = np.amax(np.array(fit))
+            value = np.ceil(max_finale)
+            return value
+
+    except Exception:
+        pass
+
+
 def sorted_nicely(l):
     """ Sorts the given iterable in the way that is expected.
 
@@ -334,6 +347,7 @@ def sorted_nicely(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
+
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
@@ -343,22 +357,25 @@ if __name__ == "__main__":
     #     logging.debug("path, max_agent and max_classifier not passed. Program not going to work")
     #     sys.exit()
 
-    first_path = "/Volumes/TheMaze/TuringLearning/january/latest/linear/"
+    first_path = "/Volumes/TheMaze/TuringLearning/january/newFitness/uvaok/"
 
     folders = how_many_fatherFolder(first_path)
 
-    folders = ["Experiment-20top20top"]
+    folders = ["Experiment-plusplusHoF"]
+
     for experiemnt in folders:
         logging.debug("Folder under analysis -> " + str(experiemnt))
         second_path = first_path + experiemnt + "/"
         res = how_many_folder(second_path)
-
 
         num_folder = len(res)
         logging.debug("Folder to analise -> " + str(num_folder))
 
         for el in res:
             path = second_path + str(el) + "/"
+
+            # check max fitness achiavable
+            maxx = find_max_fitnes(path)
 
             # if not os.path.exists(path + "_tmp00013.png"):
             names = []
@@ -368,17 +385,45 @@ if __name__ == "__main__":
 
             names = sorted_nicely(names)
 
-            for name in names:
+            logging.debug("Finding boundaries...")
+            # checking only 1/4 of all the trajectory in order to find the boudaries
+
+            total_checked_folder = len(names) / 4
+            total_min_lat = []
+            total_min_lng = []
+            total_max_lat = []
+            total_max_lng = []
+            for i in tqdm.tqdm(range(total_checked_folder)):
+                name = names[i]
+                trajectories_label, json_file = reanInfo(path + name)
+
+                for ell in trajectories_label:
+                    real_total_min_lat, real_total_min_lng, real_total_max_lat, real_total_max_lng = find_max_min_coordinates(json_file[ell]["real"], json_file[ell]["generated"], json_file[ell]["trajectory"])
+                    total_min_lat.append(real_total_min_lat)
+                    total_min_lng.append(real_total_min_lng)
+                    total_max_lat.append(real_total_max_lat)
+                    total_max_lng.append(real_total_max_lng)
+
+            min_lat = np.amin(np.array(total_min_lat)) - 0.0001
+            min_lng = np.amin(np.array(total_min_lng)) - 0.0001
+            max_lat = np.amax(np.array(total_max_lat)) + 0.0001
+            max_lng = np.amax(np.array(total_max_lng)) + 0.0001
+
+            logging.debug("Boundaries found!")
+
+            logging.debug("Creating graphs...")
+            for i in tqdm.tqdm(range(len(names))):
+                name = names[i]
                 # name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
                 numb = int(name.replace("trajectory-generatedPoints-", "").replace(".zip", "").split("-")[0])
-                logging.debug("Analysing " + str(path) + str(name))
+                # logging.debug("Analysing " + str(path) + str(name))
                 trajectories_label, json_file = reanInfo(path + name)
 
                 # manyTrajectories(json_file, trajectories_label, numb)
 
-                plot_one_trajectory(trajectories_label, json_file, numb)
+                plot_one_trajectory(trajectories_label, json_file, numb, maxx, min_lat, min_lng, max_lat, max_lng)
 
-            # else:
-            #     logging.debug("Pictures already present in the folder")
-
+                # else:
+                #     logging.debug("Pictures already present in the folder")
+            logging.debug("Graphs created!")
     logging.debug("End Program")
