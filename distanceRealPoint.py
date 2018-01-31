@@ -13,6 +13,8 @@ import os
 from math import sin, cos, sqrt, atan2, radians
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tqdm
+import re
 
 
 def reanInfo(path):
@@ -58,31 +60,37 @@ def coputeDistance(lat1, lon1, lat2, lon2):
     # distance in metres
     return distance * 1000
 
+def sorted_nicely(l):
+    """ Sorts the given iterable in the way that is expected.
+
+    Required arguments:
+    l -- The iterable to be sorted.
+
+    """
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Users/alessandrozonta/Desktop/Experiment-testnewTrajcetroies/10/"
-    files = 0
+    path = "/Users/alessandrozonta/Desktop/Experiment-plusplus10/0/"
     names = []
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
-            files += 1
             names.append(i)
 
-    names.sort()
+    names = sorted_nicely(names)
 
-    max = files
-    vect = np.arange(1, max + 1)
     total_distances = []
     numb = 0
-    for name in names:
-        logging.debug("Analysing trajectory " + str(numb))
+    logging.debug("Analysing Trajectories...")
+    for i in tqdm.tqdm(range(len(names))):
+        name = names[i]
         numb += 1
         # name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
 
         trajectories_label, json_file, id_label = reanInfo(path + name)
-
         # number = 0
         # while number < len(id_label):
 

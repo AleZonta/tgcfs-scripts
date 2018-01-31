@@ -10,10 +10,11 @@ import shutil
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    start_path = "/Volumes/TheMaze/TuringLearning/january/latest/linear"
+    start_path = "/Users/alessandrozonta/Desktop/"
 
     father_folders = how_many_fatherFolder(start_path)
 
+    father_folders = ["Experiment-plusplus10"]
     for father_folder in father_folders:
 
         path = start_path + "/" + father_folder
@@ -22,6 +23,7 @@ if __name__ == "__main__":
         folders = how_many_folder(path)
         num_folder = len(folders)
         logging.debug("Folder to analise -> " + str(num_folder))
+
 
         for folder in folders:
             logging.debug("Analysing folder " + str(folder))

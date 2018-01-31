@@ -7,7 +7,8 @@ import os
 from math import sin, cos, sqrt, atan2, radians, degrees, fabs
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import tqdm
+import re
 
 def reanInfo(path):
     # logging.debug("reading ZIP file")
@@ -38,22 +39,34 @@ def computeBearing(lat1, lon1, lat2, lon2):
     return bearing
 
 
+def sorted_nicely(l):
+    """ Sorts the given iterable in the way that is expected.
+
+    Required arguments:
+    l -- The iterable to be sorted.
+
+    """
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
+
+
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    path = "/Users/alessandrozonta/Desktop/Experiment-testnewTrajcetroies/10/"
-    files = 0
+    path = "/Users/alessandrozonta/Desktop/Experiment-plusplus10/0/"
+
+    names = []
     for i in os.listdir(path):
         if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
-            files += 1
+            names.append(i)
 
-    max = files
-    vect = np.arange(1, max +1)
+    names = sorted_nicely(names)
+
     total_distances = []
-    for numb in vect:
-        if numb%100 == 0:
-            logging.debug("Analysing trajectory " + str(numb))
-        name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
+    logging.debug("Analysing Trajectories...")
+    for i in tqdm.tqdm(range(len(names))):
+        name = names[i]
 
         trajectories_label, json_file = reanInfo(path + name)
 
@@ -96,20 +109,26 @@ if __name__ == "__main__":
 
         distance_per_trajectories = {}
 
+        # for the trajectories I have
         for i in range(len(label_real)):
 
+            # compute real bearing for the current trajectory
             real_bearing = computeBearing(lat_last[i], lng_last[i], lat_real[i], lng_real[i])
 
+            # find index of the point generated corresponding to this trajectory
             index = [j for j, x in enumerate(label_generated) if x == label_real[i]]
+
+            index_last_point = [j for j, x in enumerate(label_trajectory) if x == label_real[i]]
+
             distances = []
             for ind in index:
-                bearing = computeBearing(lat_last[i], lng_last[i], lat_generated[ind],
+                bearing = computeBearing(lat_last[index_last_point[0]], lng_last[index_last_point[0]], lat_generated[ind],
                                          lng_generated[ind])
                 distances.append(fabs(bearing - real_bearing))
             array = np.array(distances)
-            distance_per_trajectories.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
-        total_distances.append(distance_per_trajectories)
 
+            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array))})
+        total_distances.append(distance_per_trajectories)
             # # real points
         # lat_real = []
         # lng_real = []
@@ -144,17 +163,26 @@ if __name__ == "__main__":
         # array = np.array(distances)
         # real_distances.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
 
-
+    x = []
+    x = np.arange(0, len(total_distances))
     max_value = []
     min = []
     mean = []
     std = []
-    x = np.arange(0, len(real_distances))
-    for el in real_distances:
-        max_value.append(el[0])
-        min.append(el[1])
-        mean.append(el[2])
-        std.append(el[3])
+    for el in total_distances:
+        a = []
+        b = []
+        c = []
+        d = []
+        for k in el.keys():
+            a.append(el[k][0])
+            b.append(el[k][1])
+            c.append(el[k][2])
+            d.append(el[k][3])
+        max_value.append(np.mean(np.array(a)))
+        min.append(np.mean(np.array(b)))
+        mean.append(np.mean(np.array(c)))
+        std.append(np.mean(np.array(d)))
 
 
     plt.figure(0)

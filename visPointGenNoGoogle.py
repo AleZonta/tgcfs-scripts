@@ -87,6 +87,7 @@ def manyTrajectories(json_file, trajectories_label, numb):
     total_trajectories = []
 
     total_info_trajectories = []
+    total_info_fitness = []
 
     count = 0
 
@@ -125,9 +126,15 @@ def manyTrajectories(json_file, trajectories_label, numb):
                 lat_generated.append(el[0])
                 lng_generated.append(el[1])
 
+
+            fit = json_file[trajectory]["classification"]
+
             vect_generated = []
             vect_generated.append((lat_generated, lng_generated))
             total_info_trajectories.append(vect_generated)
+            vect_fitness = []
+            vect_fitness.append(fit)
+            total_info_fitness.append(vect_fitness)
         else:
             position = total_list_different_trajectories[key]
 
@@ -138,22 +145,24 @@ def manyTrajectories(json_file, trajectories_label, numb):
                 lat_generated.append(el[0])
                 lng_generated.append(el[1])
 
-            total_info_trajectories[position].append((lat_generated, lng_generated))
+            fit = json_file[trajectory]["classification"]
 
+            total_info_trajectories[position].append((lat_generated, lng_generated))
+            total_info_fitness[position].append(fit)
+
+    plt.figure(figsize=(12, 10))
+    plt.autoscale(enable=False, tight=True)
+
+    sns.set_style("darkgrid")
     for i in range(len(total_trajectories)):
         j = i + 1
         plt.subplot(3, 4, j)
-        plt.axis('off')
 
         lats = total_trajectories[i]["lats_tra"]
         lngs = total_trajectories[i]["lng_tra"]
-        # trajectory
-        plt.plot(lats, lngs, color='b', marker='o', markersize=1)
 
         lat_real = total_trajectories[i]["lats_real"]
         lng_real = total_trajectories[i]["lng_real"]
-        # print real point
-        plt.plot(lat_real, lng_real, color='k', marker='o', markersize=1)
 
         lat_g = []
         lng_g = []
@@ -161,9 +170,46 @@ def manyTrajectories(json_file, trajectories_label, numb):
             lat_g.append(el[0])
             lng_g.append(el[1])
 
+        fitness = total_info_fitness[i]
+        max = 150
+
+        min_lat = []
+        max_lat = []
+        min_lng = []
+        max_lng = []
+        min_lat.append(np.amin(np.array(lat_g)))
+        max_lat.append(np.amax(np.array(lat_g)))
+        min_lng.append(np.amin(np.array(lng_g)))
+        max_lng.append(np.amax(np.array(lng_g)))
+        min_lat.append(np.amin(np.array(lats)))
+        max_lat.append(np.amax(np.array(lats)))
+        min_lng.append(np.amin(np.array(lngs)))
+        max_lng.append(np.amax(np.array(lngs)))
+        min_lat.append(np.amin(np.array(lat_real)))
+        max_lat.append(np.amax(np.array(lat_real)))
+        min_lng.append(np.amin(np.array(lng_real)))
+        max_lng.append(np.amax(np.array(lng_real)))
+        real_min_lat = np.amin(np.array(min_lat)) - 0.0002
+        real_max_lat = np.amax(np.array(max_lat)) + 0.0002
+        real_min_lng = np.amin(np.array(min_lng)) - 0.0002
+        real_max_lng = np.amax(np.array(max_lng)) + 0.0002
+
+        plt.axis([real_min_lat, real_max_lat, real_min_lng, real_max_lng])
+        # plt.xlim(real_min_lat, real_max_lat)
+        # plt.ylim(real_min_lng, real_max_lng)
+        plt.axis('off')
+
+        # trajectory
+        plt.plot(lats, lngs, color='b', marker='o', markersize=1)
+
+        # print real point
+        plt.plot(lat_real, lng_real, color='k', marker='o', markersize=1)
+
+        plt.scatter(lat_g, lng_g, c=[fitness], marker='o', vmin=0., vmax=max, cmap='autumn', s=1)
+
         # print generated point
-        for k in range(len(lat_g)):
-            plt.plot(lat_g[k], lng_g[k], color='r', marker='o', markersize=1)
+        # for k in range(len(lat_g)):
+        #     plt.plot(lat_g[k], lng_g[k], color='r', marker='o', markersize=1)
 
     save_name = path + '_tmp%05d.png' % numb
     plt.savefig(save_name, dpi=None, facecolor='w', edgecolor='w', orientation='portrait', papertype=None,
@@ -357,11 +403,13 @@ if __name__ == "__main__":
     #     logging.debug("path, max_agent and max_classifier not passed. Program not going to work")
     #     sys.exit()
 
-    first_path = "/Volumes/TheMaze/TuringLearning/january/newFitness/uvaok/"
+    first_path = "/Users/alessandrozonta/Desktop/"
 
     folders = how_many_fatherFolder(first_path)
 
-    folders = ["Experiment-plusplusHoF"]
+    folders = ["Experiment-plusplus10"]
+
+    one_or_more = 0
 
     for experiemnt in folders:
         logging.debug("Folder under analysis -> " + str(experiemnt))
@@ -385,31 +433,38 @@ if __name__ == "__main__":
 
             names = sorted_nicely(names)
 
-            logging.debug("Finding boundaries...")
-            # checking only 1/4 of all the trajectory in order to find the boudaries
+            min_lat = 0
+            min_lng = 0
+            max_lat = 0
+            max_lng = 0
+            if one_or_more == 1:
+                logging.debug("Finding boundaries...")
+                # checking only 1/4 of all the trajectory in order to find the boudaries
 
-            total_checked_folder = len(names) / 4
-            total_min_lat = []
-            total_min_lng = []
-            total_max_lat = []
-            total_max_lng = []
-            for i in tqdm.tqdm(range(total_checked_folder)):
-                name = names[i]
-                trajectories_label, json_file = reanInfo(path + name)
+                total_checked_folder = len(names) / 4
 
-                for ell in trajectories_label:
+                list_different_tra = {}
+                max_min_info = []
+
+                for i in tqdm.tqdm(range(total_checked_folder)):
+                    name = names[i]
+                    trajectories_label, json_file = reanInfo(path + name)
+
+
+                    # for ell in trajectories_label:
                     real_total_min_lat, real_total_min_lng, real_total_max_lat, real_total_max_lng = find_max_min_coordinates(json_file[ell]["real"], json_file[ell]["generated"], json_file[ell]["trajectory"])
                     total_min_lat.append(real_total_min_lat)
                     total_min_lng.append(real_total_min_lng)
                     total_max_lat.append(real_total_max_lat)
                     total_max_lng.append(real_total_max_lng)
 
-            min_lat = np.amin(np.array(total_min_lat)) - 0.0001
-            min_lng = np.amin(np.array(total_min_lng)) - 0.0001
-            max_lat = np.amax(np.array(total_max_lat)) + 0.0001
-            max_lng = np.amax(np.array(total_max_lng)) + 0.0001
 
-            logging.debug("Boundaries found!")
+                    min_lat = np.amin(np.array(total_min_lat)) - 0.0001
+                    min_lng = np.amin(np.array(total_min_lng)) - 0.0001
+                    max_lat = np.amax(np.array(total_max_lat)) + 0.0001
+                    max_lng = np.amax(np.array(total_max_lng)) + 0.0001
+
+                logging.debug("Boundaries found!")
 
             logging.debug("Creating graphs...")
             for i in tqdm.tqdm(range(len(names))):
@@ -419,11 +474,19 @@ if __name__ == "__main__":
                 # logging.debug("Analysing " + str(path) + str(name))
                 trajectories_label, json_file = reanInfo(path + name)
 
-                # manyTrajectories(json_file, trajectories_label, numb)
-
-                plot_one_trajectory(trajectories_label, json_file, numb, maxx, min_lat, min_lng, max_lat, max_lng)
+                if one_or_more == 1:
+                    plot_one_trajectory(trajectories_label, json_file, numb, maxx, min_lat, min_lng, max_lat, max_lng)
+                else:
+                    manyTrajectories(json_file, trajectories_label, numb)
 
                 # else:
                 #     logging.debug("Pictures already present in the folder")
             logging.debug("Graphs created!")
+
+            bashCommand = "ffmpeg -f image2 -r 2 -i _tmp%05d.png -vcodec mpeg4 -y movie.mp4"
+            process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE, cwd=path)
+            output, error = process.communicate()
+
+            logging.debug("Video created!")
+
     logging.debug("End Program")
