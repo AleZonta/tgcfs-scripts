@@ -10,7 +10,7 @@ from math import sin, cos, sqrt, atan2, radians, degrees, fabs
 import matplotlib.pyplot as plt
 import seaborn as sns
 import re
-
+import tqdm
 
 
 def single_elaboration(total, max):
@@ -54,6 +54,7 @@ def single_elaboration(total, max):
 
     return scaled_version, total_list_generation[0]
 
+
 def how_many_fatherFolder(path):
     directories = os.listdir(path)
     if ".DS_Store" in directories:
@@ -65,6 +66,7 @@ def how_many_fatherFolder(path):
             list.append(el)
 
     return list
+
 
 def how_many_folder(path):
     directories = os.listdir(path)
@@ -111,10 +113,12 @@ def analise_single_folder(path, number, max_agent, max_classifier):
     scaled_version_agent, gen_agent = single_elaboration(total_agent, max_agent)
     scaled_version_classifier, gen_classifier = single_elaboration(total_classifier, max_classifier)
 
+    ok = True
     if len(total_agent) > 1001:
         logging.debug("Folder " + number + "needs to be erased")
+        ok = False
 
-    return scaled_version_agent, gen_agent, scaled_version_classifier, gen_classifier
+    return scaled_version_agent, gen_agent, scaled_version_classifier, gen_classifier, ok
 
 
 def rean_info(path):
@@ -187,78 +191,119 @@ def analise_distances(path, number):
 
     names = sorted_nicely(names)
 
-    real_distances = []
-    real_distances_bearing = []
-    arrays = []
-    arrays_b = []
-    numb = 0
-    for name in names:
-        if numb % 100 == 0:
-            logging.debug("Analysing trajectory " + str(numb))
 
-        # name = "trajectory-generatedPoints-" + str(numb) + "-" + str(numb) + ".zip"
+    numb = 0
+
+    total_distances_angle = []
+    total_distances = []
+
+    logging.debug("Analysing Trajectories...")
+    for i in tqdm.tqdm(range(len(names))):
+        name = names[i]
 
         trajectories_label, json_file = rean_info(path + name)
+
+        # ----------- distance bearings
 
         # real points
         lat_real = []
         lng_real = []
-        for el in json_file[trajectories_label[0]]["real"]:
-            lat_real.append(el[0])
-            lng_real.append(el[1])
-
         # generated points
         lat_generated = []
         lng_generated = []
-        for label in trajectories_label:
-            for el in json_file[label]["generated"]:
-                lat_generated.append(el[0])
-                lng_generated.append(el[1])
 
-        distances = []
-        # compute distance
-        for i in range(len(lat_generated)):
-            distances.append(float(compute_distance(lat_real[0], lng_real[0], lat_generated[i], lng_generated[i])))
-
-        array = np.array(distances)
-        # max_d = np.max(array)
-        # distances_scaled_version = []
-        # for el in distances:
-        #     distances_scaled_version.append((((el - 0) * (1 - 0)) / (max_d - 0)) + 0)
-
-        # array = np.array(distances_scaled_version)
-        arrays.append(array)
-        real_distances.append((np.max(array), np.min(array), np.mean(array), np.std(array)))
+        label_real = []
+        label_generated = []
+        label_trajectory = []
 
         # last point trajectory
         lat_last = []
         lng_last = []
-        for el in json_file[trajectories_label[0]]["trajectory"]:
-            lat_last.append(el[0])
-            lng_last.append(el[1])
+        for labels in trajectories_label:
+            for el in json_file[labels]["real"]:
+                if el[0] not in lat_real:
+                    lat_real.append(el[0])
+                    lng_real.append(el[1])
+                    label_real.append(json_file[labels]["id"])
 
-        real_bearing = compute_bearing(lat_last[len(lat_last) - 1], lng_last[len(lat_last) - 1], lat_real[0],
-                                       lng_real[0])
+            for el in json_file[labels]["generated"]:
+                lat_generated.append(el[0])
+                lng_generated.append(el[1])
+                label_generated.append(json_file[labels]["id"])
 
-        distances_bearing = []
-        # compute distance
-        for i in range(len(lat_generated)):
-            # compute the distances
-            bearing = compute_bearing(lat_last[len(lat_last) - 1], lng_last[len(lat_last) - 1], lat_generated[i],
-                                      lng_generated[i])
-            distances_bearing.append(fabs(real_bearing - bearing))
+            appo_lat = []
+            appo_lgn = []
+            for el in json_file[labels]["trajectory"]:
+                appo_lat.append(el[0])
+                appo_lgn.append(el[1])
 
-        array_b = np.array(distances_bearing)
-        # max_d = np.max(array)
-        # distances_bearing_scaled_version = []
-        # for el in distances_bearing:
-        #     distances_bearing_scaled_version.append((((el - 0) * (1 - 0)) / (max_d - 0)) + 0)
+            lat_last.append(appo_lat[len(appo_lat) - 1])
+            lng_last.append(appo_lgn[len(appo_lgn) - 1])
+            label_trajectory.append(json_file[labels]["id"])
 
-        # array = np.array(distances_bearing_scaled_version)
-        arrays_b.append(array_b)
-        real_distances_bearing.append((np.max(array_b), np.min(array_b), np.mean(array_b), np.std(array_b)))
+        distance_per_trajectories = {}
+
+        # for the trajectories I have
+        for i in range(len(label_real)):
+
+            # compute real bearing for the current trajectory
+            real_bearing = compute_bearing(lat_last[i], lng_last[i], lat_real[i], lng_real[i])
+
+            # find index of the point generated corresponding to this trajectory
+            index = [j for j, x in enumerate(label_generated) if x == label_real[i]]
+
+            index_last_point = [j for j, x in enumerate(label_trajectory) if x == label_real[i]]
+
+            distances = []
+            for ind in index:
+                bearing = compute_bearing(lat_last[index_last_point[0]], lng_last[index_last_point[0]],
+                                         lat_generated[ind],
+                                         lng_generated[ind])
+                distances.append(fabs(bearing - real_bearing))
+            array = np.array(distances)
+
+            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array))})
+        total_distances_angle.append(distance_per_trajectories)
+
+        # ----------- distance points
+
+        # real points
+        lat_real = []
+        lng_real = []
+        # generated points
+        lat_generated = []
+        lng_generated = []
+
+        label_real = []
+        label_generated = []
+        for labels in trajectories_label:
+            for el in json_file[labels]["real"]:
+                if el[0] not in lat_real:
+                    lat_real.append(el[0])
+                    lng_real.append(el[1])
+                    label_real.append(json_file[labels]["id"])
+
+            for el in json_file[labels]["generated"]:
+                if el[0] not in lat_generated:
+                    lat_generated.append(el[0])
+                    lng_generated.append(el[1])
+                    label_generated.append(json_file[labels]["id"])
+
+        distance_per_trajectories = {}
+        # now for every trajectory compute the distance of the generated distance
+        for i in range(len(label_real)):
+            index = [j for j, x in enumerate(label_generated) if x == label_real[i]]
+            distances = []
+            for ind in index:
+                distances.append(
+                    float(compute_distance(lat_real[i], lng_real[i], lat_generated[ind], lng_generated[ind])))
+
+            array = np.array(distances)
+            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array))})
+        total_distances.append(distance_per_trajectories)
+
         numb += 1
-    return real_distances, real_distances_bearing
+    return total_distances, total_distances_angle
 
 
 def find_max_values_fitness(path):
@@ -307,19 +352,21 @@ if __name__ == "__main__":
 
     folders = how_many_fatherFolder(first_path)
 
-    folders = ["Experiment-dddd"]
+    folders = ["Experiment-plusplus10"]
+
+    problems = []
+
+    # check all the external folder [name of the experiment]
     for experiemnt in folders:
         logging.debug("Folder under analysis -> " + str(experiemnt))
         path = first_path + experiemnt + "/"
 
         res = how_many_folder(path)
 
-        res = ["7"]
-
         num_folder = len(res)
 
         logging.debug("Folder to analise -> " + str(num_folder))
-
+        # check all the internal folder [number of the repetition]
         for folder in res:
             logging.debug("Analysing folder " + str(folder))
             max_agent, max_classifier = find_max_values_fitness(path + "/" + str(folder) + "/")
@@ -334,30 +381,43 @@ if __name__ == "__main__":
             if create:
 
                 # read the fitness and return it scaled 0-1
-                logging.debug("Checking the fitness")
-                scaled_version_agent, gen_agent, scaled_version_classifier, gen_classifier = analise_single_folder(path,
-                                                                                                                   folder,
-                                                                                                                   max_agent,
-                                                                                                                   max_classifier)
+                logging.debug("Checking the fitness...")
+                scaled_version_agent, gen_agent, scaled_version_classifier, gen_classifier, ok = analise_single_folder(
+                    path,
+                    folder,
+                    max_agent,
+                    max_classifier)
+
+                if not ok:
+                    problems.append((experiemnt, folder, "Problem with number of fitness values"))
 
                 # read all the trajectories for the distance to the real point
-                logging.debug("Checking the distances")
+                logging.debug("Checking the distances...")
                 real_distances, real_distances_bearing = analise_distances(path, folder)
 
                 x = []
+                x = np.arange(0, len(real_distances))
                 max_value = []
                 min_value = []
                 mean = []
                 std = []
-                x = np.arange(0, len(real_distances))
                 for el in real_distances:
-                    max_value.append(el[0])
-                    min_value.append(el[1])
-                    mean.append(el[2])
-                    std.append(el[3])
+                    a = []
+                    b = []
+                    c = []
+                    d = []
+                    for k in el.keys():
+                        a.append(el[k][0])
+                        b.append(el[k][1])
+                        c.append(el[k][2])
+                        d.append(el[k][3])
+                    max_value.append(np.mean(np.array(a)))
+                    min_value.append(np.mean(np.array(b)))
+                    mean.append(np.mean(np.array(c)))
+                    std.append(np.mean(np.array(d)))
 
                 # normalise distances
-                max_median = 1.5
+                max_median = 20
                 median_norm = []
                 std_norm = []
                 max_value_norm = []
@@ -369,25 +429,34 @@ if __name__ == "__main__":
                     min_value_norm.append((((min_value[i] - 0) * (1 - 0)) / (max_median - 0)) + 0)
 
                 x_bearing = []
+                x_bearing = np.arange(0, len(real_distances_bearing))
                 max_value_bearing = []
                 min_value_bearing = []
-                median_bearing = []
+                mean_bearing = []
                 std_bearing = []
-                x_bearing = np.arange(0, len(real_distances_bearing))
                 for el in real_distances_bearing:
-                    max_value_bearing.append(el[0])
-                    min_value_bearing.append(el[1])
-                    median_bearing.append(el[2])
-                    std_bearing.append(el[3])
+                    a = []
+                    b = []
+                    c = []
+                    d = []
+                    for k in el.keys():
+                        a.append(el[k][0])
+                        b.append(el[k][1])
+                        c.append(el[k][2])
+                        d.append(el[k][3])
+                    max_value_bearing.append(np.mean(np.array(a)))
+                    min_value_bearing.append(np.mean(np.array(b)))
+                    mean_bearing.append(np.mean(np.array(c)))
+                    std_bearing.append(np.mean(np.array(d)))
 
                 # normalise distances
                 max_median_b = 360.0
-                median_norm_b = []
+                mean_norm_b = []
                 std_norm_b = []
                 max_value_norm_b = []
                 min_value_norm_b = []
-                for i in range(len(median_bearing)):
-                    median_norm_b.append((((median_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
+                for i in range(len(mean_bearing)):
+                    mean_norm_b.append((((mean_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
                     std_norm_b.append((((std_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
                     max_value_norm_b.append((((max_value_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
                     min_value_norm_b.append((((min_value_bearing[i] - 0) * (1 - 0)) / (max_median_b - 0)) + 0)
@@ -425,7 +494,7 @@ if __name__ == "__main__":
 
                 plt.figure(figsize=(12, 6))
                 sns.set_style("darkgrid")
-                plt.errorbar(x_bearing, median_bearing, std_bearing, elinewidth=0.5)
+                plt.errorbar(x_bearing, mean_bearing, std_bearing, elinewidth=0.5)
                 plt.errorbar(x, min_value_bearing)
                 plt.errorbar(x, max_value_bearing)
                 plt.xlabel("Generation")
@@ -440,3 +509,6 @@ if __name__ == "__main__":
 
             else:
                 logging.debug("Graph is already there")
+
+    for el in problems:
+        logging.debug(el)
