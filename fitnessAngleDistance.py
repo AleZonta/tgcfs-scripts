@@ -182,11 +182,16 @@ def sorted_nicely(l):
     return sorted(l, key=alphanum_key)
 
 
-def analise_distances(path, number):
+def analise_distances(path, number, bigOrSmall):
     path = path + "/" + str(number) + "/"
     names = []
     for i in os.listdir(path):
-        if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
+        if bigOrSmall:
+            name_to_check = "trajectory-generatedPoints-"
+        else:
+            name_to_check = "trajectory-generate-aSs-"
+        # if os.path.isfile(os.path.join(path, i)) and 'trajectory-generatedPoints-' in i and ".zip" in i:
+        if os.path.isfile(os.path.join(path, i)) and name_to_check in i and ".zip" in i:
             names.append(i)
 
     names = sorted_nicely(names)
@@ -262,7 +267,7 @@ def analise_distances(path, number):
                 distances.append(fabs(bearing - real_bearing))
             array = np.array(distances)
 
-            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array))})
+            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array), np.median(array))})
         total_distances_angle.append(distance_per_trajectories)
 
         # ----------- distance points
@@ -299,7 +304,7 @@ def analise_distances(path, number):
                     float(compute_distance(lat_real[i], lng_real[i], lat_generated[ind], lng_generated[ind])))
 
             array = np.array(distances)
-            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array))})
+            distance_per_trajectories.update({i: (np.max(array), np.min(array), np.mean(array), np.std(array), np.median(array))})
         total_distances.append(distance_per_trajectories)
 
         numb += 1
@@ -347,12 +352,14 @@ if __name__ == "__main__":
     # max_agent = 200
     # max_classifier = 400
     time_agent_more_classifier = 0
-    first_path = "/Users/alessandrozonta/Desktop/"
+    first_path = "/Volumes/TheMaze/TuringLearning/tgcfs_lisa/"
     override = True
+    # false means only the top 15 individual
+    bigOrSmall = False
 
     folders = how_many_fatherFolder(first_path)
 
-    folders = ["Experiment-plusplus10"]
+    # folders = ["Experiment-testLSTM"]
 
     problems = []
 
@@ -363,6 +370,8 @@ if __name__ == "__main__":
 
         res = how_many_folder(path)
 
+        # res = ["0"]
+
         num_folder = len(res)
 
         logging.debug("Folder to analise -> " + str(num_folder))
@@ -372,7 +381,10 @@ if __name__ == "__main__":
             max_agent, max_classifier = find_max_values_fitness(path + "/" + str(folder) + "/")
             logging.debug("Max fitness agent: " + str(max_agent) + ", Max fitness classifier: " + str(max_classifier))
 
-            real_path = path + "/" + str(folder) + "/" + "graph.png"
+            if bigOrSmall:
+                real_path = path + "/" + str(folder) + "/" + "graph.png"
+            else:
+                real_path = path + "/" + str(folder) + "/" + "graphTop.png"
             create = True
             if not override:
                 if os.path.exists(real_path):
@@ -393,7 +405,7 @@ if __name__ == "__main__":
 
                 # read all the trajectories for the distance to the real point
                 logging.debug("Checking the distances...")
-                real_distances, real_distances_bearing = analise_distances(path, folder)
+                real_distances, real_distances_bearing = analise_distances(path, folder, bigOrSmall)
 
                 x = []
                 x = np.arange(0, len(real_distances))
@@ -489,7 +501,10 @@ if __name__ == "__main__":
                 plt.legend(("Median", "Min", "Max"))
 
                 logging.debug("Saving graph1")
-                real_path = path + "/" + str(folder) + "/" + "graph1.png"
+                if bigOrSmall:
+                    real_path = path + "/" + str(folder) + "/" + "graph1.png"
+                else:
+                    real_path = path + "/" + str(folder) + "/" + "graph1Top.png"
                 plt.savefig(real_path)
 
                 plt.figure(figsize=(12, 6))
@@ -503,7 +518,10 @@ if __name__ == "__main__":
                 plt.legend(("Median", "Min", "Max"))
 
                 logging.debug("Saving graph2")
-                real_path = path + "/" + str(folder) + "/" + "graph2.png"
+                if bigOrSmall:
+                    real_path = path + "/" + str(folder) + "/" + "graph2.png"
+                else:
+                    real_path = path + "/" + str(folder) + "/" + "graph2Top.png"
                 plt.savefig(real_path)
 
 

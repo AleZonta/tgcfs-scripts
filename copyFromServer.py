@@ -10,7 +10,7 @@ from visPointGenNoGoogle import how_many_folder
 
 def download_graphs_from_all(path_here, path_on_server, name_server, folder_name):
     number_folder = 35
-    what_to_copy = ["graph.png", "graph1.png", "graph2.png"]
+    what_to_copy = ["graph.png", "graph1.png", "graph2.png", "movie.mp4"]
     folders = np.arange(0, number_folder + 1)
 
     for el in folders:

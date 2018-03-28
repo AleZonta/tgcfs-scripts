@@ -10,17 +10,21 @@ import shutil
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
-    start_path = "/Users/alessandrozonta/Desktop/"
+    start_path = "/Users/alessandrozonta/Desktop/das5/"
 
     father_folders = how_many_fatherFolder(start_path)
 
-    father_folders = ["Experiment-plusplus10"]
+    father_folders = ["Experiment-idsa1tra10timestepsLSTM"]
+
     for father_folder in father_folders:
 
         path = start_path + "/" + father_folder
 
 
         folders = how_many_folder(path)
+
+        # folders = ["0"]
+
         num_folder = len(folders)
         logging.debug("Folder to analise -> " + str(num_folder))
 
@@ -30,13 +34,13 @@ if __name__ == "__main__":
 
             real_path = path + "/" + str(folder)
 
-            if os.path.exists(real_path + "/_tmp00800.png"):
+            if os.path.exists(real_path + "/_tmp00100.png"):
 
                 # count number of png
                 number_of_png = len(fnmatch.filter(os.listdir(real_path), '*.png'))
                 logging.debug("Number of png -> " + str(number_of_png))
 
-                if number_of_png > 400:
+                if number_of_png > 100:
 
                     if not os.path.exists(real_path + "movie.mp4"):
 
